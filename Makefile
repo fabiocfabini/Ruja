@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-Wall -Wextra -Wswitch -pedantic -std=c11 -ggdb
+CFLAGS=-Wall -Wextra -Wswitch-enum -pedantic -std=c11 -ggdb
 
 SRC=src
 BIN=exe
