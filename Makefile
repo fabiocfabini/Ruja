@@ -12,7 +12,7 @@ EXECUTABLE=ruja
 .DEFAULT_GOAL := build
 
 memcheck: dirs build
-	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes -s -q $(BIN)/$(EXECUTABLE)
+	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes -s -q $(BIN)/$(EXECUTABLE) input.ruja
 
 build: dirs $(OBJ_FILES)
 	$(CC) $(CFLAGS) $(OBJ_FILES) ruja.c -o $(BIN)/$(EXECUTABLE)
