@@ -29,6 +29,8 @@ typedef enum {
     RUJA_TOK_TRUE, RUJA_TOK_FALSE,
     RUJA_TOK_LET,
     RUJA_TOK_ID,
+    // i32 f32
+    RUJA_TOK_TYPE_I8,
 
     // literals
     // 123 123.456 "hello" 'c'

@@ -138,6 +138,7 @@ static Ruja_Token_Kind id_v_keyword(Ruja_Lexer* lexer) {
             switch(peek_offset(lexer, 1)) {
                 case 'f': return match(lexer, 2, 0, "", RUJA_TOK_IF); break;
                 case 'n': return match(lexer, 2, 0, "", RUJA_TOK_IN); break;
+                case '8': return match(lexer, 2, 0, "", RUJA_TOK_TYPE_I8); break;
             }
         } break;
         case 'l': { return match(lexer, 1, 2, "et", RUJA_TOK_LET); break; }
@@ -260,6 +261,7 @@ static char* token_kind_to_string(Ruja_Token_Kind kind) {
         case RUJA_TOK_TRUE          : return "TRUE";
         case RUJA_TOK_FALSE         : return "FALSE";
         case RUJA_TOK_LET           : return "LET";
+        case RUJA_TOK_TYPE_I8      : return "I8";
         case RUJA_TOK_ID            : return "ID";
         case RUJA_TOK_INT           : return "INT";
         case RUJA_TOK_FLOAT         : return "FLOAT";

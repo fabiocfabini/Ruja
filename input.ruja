@@ -1,7 +1,1 @@
-{}()[]:;,.=<>+-*/%!
-"string" "unterminated string
-asdfasdf"
-Two characters
-==  != <= >= -> += -= *= /= %=
-keywords
-and or not -- if else elif -- for in -- proc return struct enum -- true false
+1 + 2
