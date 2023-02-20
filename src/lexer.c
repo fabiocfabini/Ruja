@@ -3,6 +3,11 @@
 
 #include "lexer.h"
 
+/**
+ * @brief Sets the start position of the lexer to the current position.
+ * 
+ * @param lexer 
+ */
 static void rebase(Ruja_Lexer *lexer) {
     lexer->start = lexer->current;
 }
@@ -45,16 +50,6 @@ static char peek_offset(Ruja_Lexer *lexer, size_t offset) {
  */
 static char peek_next(Ruja_Lexer *lexer) {
     return *(lexer->current + 1);
-}
-
-/**
- * @brief Returns the next next character of the lexer.
- * 
- * @param lexer The lexer to get the next next character of.
- * @return char The next next character of the lexer.
- */
-static char peek_next_next(Ruja_Lexer *lexer) {
-    return *(lexer->current + 2);
 }
 
 /**
@@ -212,6 +207,12 @@ static Ruja_Token tok_number(Ruja_Lexer* lexer) {
     return result;
 }
 
+/**
+ * @brief Returns a human readable string of the token kind.
+ * 
+ * @param kind 
+ * @return char* 
+ */
 static char* token_kind_to_string(Ruja_Token_Kind kind) {
     switch (kind) {
         case RUJA_TOK_EOF           : return "EOF";
