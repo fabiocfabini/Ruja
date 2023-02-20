@@ -4,8 +4,7 @@
 #include "common.h"
 
 typedef enum {
-    RUJA_TOK_ERR_UNRECOGNIZED = -3,
-    RUJA_TOK_ERR_UNTERMINATED_STRING = -2,
+    RUJA_TOK_ERR = -2,
     RUJA_TOK_EOF = -1,
 
     // One character
@@ -48,13 +47,14 @@ void token_to_string(Ruja_Token* token);
 
 typedef struct {
     const char *source;
-    const char *start;
-    const char *current;
+    char *content_start;
+    char *start;
+    char *current;
     size_t line;
 } Ruja_Lexer;
 
-Ruja_Lexer lexer_new(char *content);
-Ruja_Lexer lexer_free(Ruja_Lexer *lexer);
+Ruja_Lexer* lexer_new(const char* filepath);
+void lexer_free(Ruja_Lexer *lexer);
 Ruja_Token next_token(Ruja_Lexer *lexer);
 
 #endif // RUJA_LEXER_H
