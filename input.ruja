@@ -1,1 +1,25 @@
-1 + 2
+enum Dir {
+    Up,
+    Down,
+    Left,
+    Right,
+}
+
+struct Player {
+    x: i32,
+    y: i32,
+    dir: Dir,
+}
+
+proc move_player(player: Player, dir: Dir) {
+    match dir {
+        Dir.Up -> player.y -= 1,
+        Dir.Down -> player.y += 1,
+        Dir.Left -> player.x -= 1,
+        Dir.Right -> player.x += 1,
+    }
+}
+
+if not 1 and not 3 or 1 {!
+    print("Hello, world!);
+}

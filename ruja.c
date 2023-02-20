@@ -5,73 +5,6 @@
 
 #include "src/lexer.h"
 
-char* read_file(const char* filepath){
-    char* buffer = NULL;
-    
-    FILE* file = fopen(filepath, "r");
-    if (file == NULL) {
-        printf("Could not open file '%s': %s\n", filepath, strerror(errno));
-        if (buffer != NULL) {
-            free(buffer);
-        }
-        return NULL;
-    }
-
-    if (fseek(file, 0L, SEEK_END) == -1) {
-        printf("Could not seek to end of file '%s': %s\n", filepath, strerror(errno));
-        if (buffer != NULL) {
-            free(buffer);
-        }
-        return NULL;
-    }
-
-    long file_size = ftell(file);
-    if (file_size == -1) {
-        printf("Could not get size of file '%s': %s\n", filepath, strerror(errno));
-        if (buffer != NULL) {
-            free(buffer);
-        }
-        return NULL;
-    }
-
-    if (fseek(file, 0L, SEEK_SET) == -1) {
-        printf("Could not seek to start of file '%s': %s\n", filepath, strerror(errno));
-        if (buffer != NULL) {
-            free(buffer);
-        }
-        return NULL;
-    }
-
-    buffer = malloc(file_size + 1);
-    if (buffer == NULL) {
-        printf("Could not allocate memory for file '%s': %s\n", filepath, strerror(errno));
-        if (buffer != NULL) {
-            free(buffer);
-        }
-        return NULL;
-    }
-
-    size_t new_len = fread(buffer, sizeof(char), (size_t) file_size, file);
-    if (ferror(file) != 0) {
-        printf("Could not read file '%s': %s\n", filepath, strerror(errno));
-        if (buffer != NULL) {
-            free(buffer);
-        }
-        return NULL;
-    }
-    buffer[new_len++] = '\0';
-
-    if (fclose(file) == EOF) {
-        printf("Could not close file '%s': %s\n", filepath, strerror(errno));
-        if (buffer != NULL) {
-            free(buffer);
-        }
-        return NULL;
-    }
-
-    return buffer;
-}
-
 void shift_agrs(int* argc, char*** argv) {
     (*argc)--;
     (*argv)++;
@@ -94,6 +27,7 @@ void usage() {
     printf("\n");
     printf("Options:\n");
     printf("  -h, --help\t\tPrint this help message.\n");
+    printf("  -v, --version\t\tPrint the version of Ruja.\n");
 }
 
 int main(int argc, char** argv) {
@@ -107,17 +41,14 @@ int main(int argc, char** argv) {
             } else if (strcmp(*argv, "-v") == 0 || strcmp(*argv, "--version") == 0) {
                 printf("Ruja 0.0.1\n"); return 0;
             } else if (endswith(*argv, ".ruja")) {
-                char* source = read_file(*argv);
-                if (source != NULL){
-                    Ruja_Lexer lexer = lexer_new(source);
-
+                Ruja_Lexer* lexer = lexer_new(*argv);
+                if (lexer != NULL) {
                     while (true) {
-                        Ruja_Token token = next_token(&lexer);
-                        token_to_string(&token);
+                        Ruja_Token token = next_token(lexer);
+                        // token_to_string(&token);
                         if (token.kind == RUJA_TOK_EOF) break;
                     }
-
-                    free(source);
+                    lexer_free(lexer);
                 }
             } else {
                 printf("Unknown option '%s'.\n", *argv);
