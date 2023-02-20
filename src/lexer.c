@@ -326,7 +326,6 @@ void token_to_string(Ruja_Token* token) {
     printf("Ruja_Token(%s,%.*s,%"PRIu64")\n", token_kind_to_string(token->kind), (int) token->length, token->start, token->line);
 }
 
-// TODO: This is a redundant solution. Change it to a better one.
 Ruja_Lexer* lexer_new(const char* filepath) {
     char* content = read_file(filepath);
     if (content == NULL) return NULL;
