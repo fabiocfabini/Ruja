@@ -3,7 +3,7 @@
 #include <string.h>
 #include <errno.h>
 
-#include "src/lexer.h"
+#include "src/parser.h"
 
 void shift_agrs(int* argc, char*** argv) {
     (*argc)--;
@@ -43,10 +43,11 @@ int main(int argc, char** argv) {
             } else if (endswith(*argv, ".ruja")) {
                 Ruja_Lexer* lexer = lexer_new(*argv);
                 if (lexer != NULL) {
-                    while (true) {
-                        Ruja_Token token = next_token(lexer);
-                        // token_to_string(&token);
-                        if (token.kind == RUJA_TOK_EOF) break;
+                    Ruja_Parser* parser = parser_new();
+                    if (parser != NULL) {
+                        parse(parser, lexer);
+
+                        parser_free(parser);
                     }
                     lexer_free(lexer);
                 }

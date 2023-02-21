@@ -236,7 +236,7 @@ static char* token_kind_to_string(Ruja_Token_Kind kind) {
         case RUJA_TOK_SEMICOLON     : return "SEMICOLON";
         case RUJA_TOK_COMMA         : return "COMMA";
         case RUJA_TOK_DOT           : return "DOT";
-        case RUJA_TOK_EQUAL         : return "EQUAL";
+        case RUJA_TOK_ASSIGN         : return "ASSIGN";
         case RUJA_TOK_NE            : return "NE";
         case RUJA_TOK_LT            : return "LT";
         case RUJA_TOK_GT            : return "GT";
@@ -284,7 +284,7 @@ static char* token_kind_to_string(Ruja_Token_Kind kind) {
 static char* read_file(const char* filepath){
     #define READ_ERROR(condition, msg) \
         if (condition) { \
-            fprintf(stderr, msg" '%s': %s\n", filepath, strerror(errno)); \
+            fprintf(stderr, msg" '%s': %s.\n", filepath, strerror(errno)); \
             if (buffer != NULL) { \
                 free(buffer); \
             } \
@@ -316,9 +316,7 @@ static char* read_file(const char* filepath){
 }
 
 static void err_lexer(Ruja_Lexer *lexer, Ruja_Token* token, const char* msg) {
-    #define RED     "\x1B[31m"
-    #define RESET   "\x1B[0m"
-    fprintf(stderr, "%s:%"PRIu64": "RED"error"RESET" %s '%*s'\n", lexer->source, token->line, msg, (int) token->length, token->start);
+    fprintf(stderr, "%s:%"PRIu64": "RED"lex error"RESET" %s '%.*s'.\n", lexer->source, token->line, msg, (int) token->length, token->start);
     token->kind = RUJA_TOK_ERR;
 }
 
@@ -332,7 +330,7 @@ Ruja_Lexer* lexer_new(const char* filepath) {
 
     Ruja_Lexer* lexer = malloc(sizeof(Ruja_Lexer));
     if (lexer == NULL) {
-        fprintf(stderr, "Could not allocate memory for lexer: %s\n", strerror(errno));
+        fprintf(stderr, "Could not allocate memory for lexer: %s.\n", strerror(errno));
         free(content);
         return NULL;
     }
@@ -382,7 +380,7 @@ Ruja_Token next_token(Ruja_Lexer *lexer) {
             advance(lexer);
             switch (peek(lexer)) {
                 case '=' : { advance(lexer); result.kind = RUJA_TOK_EQ; result.length = 2;} break;
-                default  : { result.kind = RUJA_TOK_EQUAL; } break;
+                default  : { result.kind = RUJA_TOK_ASSIGN; } break;
             }
         } break;
         case '<' : {
