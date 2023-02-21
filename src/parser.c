@@ -105,94 +105,124 @@ static void expression(Ruja_Parser *parser, Ruja_Lexer *lexer);
 static void ternary(Ruja_Parser *parser, Ruja_Lexer *lexer);
 static void binary(Ruja_Parser *parser, Ruja_Lexer *lexer);
 static void unary(Ruja_Parser *parser, Ruja_Lexer *lexer);
-static void number_i(Ruja_Parser *parser, Ruja_Lexer *lexer);
-static void number_f(Ruja_Parser *parser, Ruja_Lexer *lexer);
-static void number_c(Ruja_Parser *parser, Ruja_Lexer *lexer);
+static void integer(Ruja_Parser *parser, Ruja_Lexer *lexer);
+static void floating(Ruja_Parser *parser, Ruja_Lexer *lexer);
+static void character(Ruja_Parser *parser, Ruja_Lexer *lexer);
 static void string(Ruja_Parser *parser, Ruja_Lexer *lexer);
 static void identifier(Ruja_Parser *parser, Ruja_Lexer *lexer);
 static void grouping(Ruja_Parser *parser, Ruja_Lexer *lexer);
 static void parse_precedence(Ruja_Parser *parser, Ruja_Lexer *lexer, Precedence precedence);
 
 static Parse_Rule rules[] = {
-    [RUJA_TOK_LBRACE] = {NULL, NULL, PREC_NONE},
-    [RUJA_TOK_RBRACE] = {NULL, NULL, PREC_NONE},
-    [RUJA_TOK_LPAREN] = {grouping, NULL, PREC_NONE},
-    [RUJA_TOK_RPAREN] = {NULL, NULL, PREC_NONE},
-    [RUJA_TOK_LBRACKET] = {NULL, NULL, PREC_NONE},
-    [RUJA_TOK_RBRACKET] = {NULL, NULL, PREC_NONE},
-    [RUJA_TOK_COLON] = {NULL, NULL, PREC_NONE},
-    [RUJA_TOK_SEMICOLON] = {NULL, NULL, PREC_NONE},
-    [RUJA_TOK_COMMA] = {NULL, NULL, PREC_NONE},
-    [RUJA_TOK_DOT] = {NULL, NULL, PREC_NONE},
-    [RUJA_TOK_QUESTION] = {NULL, ternary, PREC_QUESTION},
-    [RUJA_TOK_ASSIGN] = {NULL, NULL, PREC_NONE},
-    [RUJA_TOK_LT] = {NULL, binary, PREC_COMPARISON},
-    [RUJA_TOK_GT] = {NULL, binary, PREC_COMPARISON},
-    [RUJA_TOK_ADD] = {NULL, binary, PREC_TERM},
-    [RUJA_TOK_SUB] = {unary, binary, PREC_TERM},
-    [RUJA_TOK_MUL] = {NULL, binary, PREC_FACTOR},
-    [RUJA_TOK_DIV] = {NULL, binary, PREC_FACTOR},
-    [RUJA_TOK_PERCENT] = {NULL, binary, PREC_FACTOR},
-    [RUJA_TOK_BANG] = {NULL, NULL, PREC_NONE},
-    [RUJA_TOK_EQ] = {NULL, binary, PREC_EQUALITY},
-    [RUJA_TOK_NE] = {NULL, binary, PREC_EQUALITY},
-    [RUJA_TOK_LE] = {NULL, binary, PREC_COMPARISON},
-    [RUJA_TOK_GE] = {NULL, binary, PREC_COMPARISON},
-    [RUJA_TOK_ARROW] = {NULL, NULL, PREC_NONE},
-    [RUJA_TOK_ADD_EQ] = {NULL, NULL, PREC_NONE},
-    [RUJA_TOK_SUB_EQ] = {NULL, NULL, PREC_NONE},
-    [RUJA_TOK_MUL_EQ] = {NULL, NULL, PREC_NONE},
-    [RUJA_TOK_DIV_EQ] = {NULL, NULL, PREC_NONE},
+    [RUJA_TOK_LBRACE]     = {NULL, NULL, PREC_NONE},
+    [RUJA_TOK_RBRACE]     = {NULL, NULL, PREC_NONE},
+    [RUJA_TOK_LPAREN]     = {grouping, NULL, PREC_NONE},
+    [RUJA_TOK_RPAREN]     = {NULL, NULL, PREC_NONE},
+    [RUJA_TOK_LBRACKET]   = {NULL, NULL, PREC_NONE},
+    [RUJA_TOK_RBRACKET]   = {NULL, NULL, PREC_NONE},
+    [RUJA_TOK_COLON]      = {NULL, NULL, PREC_NONE},
+    [RUJA_TOK_SEMICOLON]  = {NULL, NULL, PREC_NONE},
+    [RUJA_TOK_COMMA]      = {NULL, NULL, PREC_NONE},
+    [RUJA_TOK_DOT]        = {NULL, NULL, PREC_NONE},
+    [RUJA_TOK_QUESTION]   = {NULL, ternary, PREC_QUESTION},
+    [RUJA_TOK_ASSIGN]     = {NULL, NULL, PREC_NONE},
+    [RUJA_TOK_LT]         = {NULL, binary, PREC_COMPARISON},
+    [RUJA_TOK_GT]         = {NULL, binary, PREC_COMPARISON},
+    [RUJA_TOK_ADD]        = {NULL, binary, PREC_TERM},
+    [RUJA_TOK_SUB]        = {unary, binary, PREC_TERM},
+    [RUJA_TOK_MUL]        = {NULL, binary, PREC_FACTOR},
+    [RUJA_TOK_DIV]        = {NULL, binary, PREC_FACTOR},
+    [RUJA_TOK_PERCENT]    = {NULL, binary, PREC_FACTOR},
+    [RUJA_TOK_BANG]       = {NULL, NULL, PREC_NONE},
+    [RUJA_TOK_EQ]         = {NULL, binary, PREC_EQUALITY},
+    [RUJA_TOK_NE]         = {NULL, binary, PREC_EQUALITY},
+    [RUJA_TOK_LE]         = {NULL, binary, PREC_COMPARISON},
+    [RUJA_TOK_GE]         = {NULL, binary, PREC_COMPARISON},
+    [RUJA_TOK_ARROW]      = {NULL, NULL, PREC_NONE},
+    [RUJA_TOK_ADD_EQ]     = {NULL, NULL, PREC_NONE},
+    [RUJA_TOK_SUB_EQ]     = {NULL, NULL, PREC_NONE},
+    [RUJA_TOK_MUL_EQ]     = {NULL, NULL, PREC_NONE},
+    [RUJA_TOK_DIV_EQ]     = {NULL, NULL, PREC_NONE},
     [RUJA_TOK_PERCENT_EQ] = {NULL, NULL, PREC_NONE},
-    [RUJA_TOK_AND] = {NULL, binary, PREC_AND},
-    [RUJA_TOK_OR] = {NULL, binary, PREC_OR},
-    [RUJA_TOK_NOT] = {unary, NULL, PREC_UNARY},
-    [RUJA_TOK_IF] = {NULL, NULL, PREC_NONE},
-    [RUJA_TOK_ELSE] = {NULL, NULL, PREC_NONE},
-    [RUJA_TOK_ELIF] = {NULL, NULL, PREC_NONE},
-    [RUJA_TOK_FOR] = {NULL, NULL, PREC_NONE},
-    [RUJA_TOK_IN] = {NULL, NULL, PREC_NONE},
-    [RUJA_TOK_PROC] = {NULL, NULL, PREC_NONE},
-    [RUJA_TOK_RETURN] = {NULL, NULL, PREC_NONE},
-    [RUJA_TOK_STRUCT] = {NULL, NULL, PREC_NONE},
-    [RUJA_TOK_ENUM] = {NULL, NULL, PREC_NONE},
-    [RUJA_TOK_TRUE] = {NULL, NULL, PREC_NONE},
-    [RUJA_TOK_FALSE] = {NULL, NULL, PREC_NONE},
-    [RUJA_TOK_LET] = {NULL, NULL, PREC_NONE},
-    [RUJA_TOK_ID] = {identifier, NULL, PREC_NONE},
-    [RUJA_TOK_TYPE_I8] = {NULL, NULL, PREC_NONE},
-    [RUJA_TOK_INT] = {number_i, NULL, PREC_NONE},
-    [RUJA_TOK_FLOAT] = {number_f, NULL, PREC_NONE},
-    [RUJA_TOK_STRING] = {string, NULL, PREC_NONE},
-    [RUJA_TOK_CHAR] = {number_c, NULL, PREC_NONE},
+    [RUJA_TOK_AND]        = {NULL, binary, PREC_AND},
+    [RUJA_TOK_OR]         = {NULL, binary, PREC_OR},
+    [RUJA_TOK_NOT]        = {unary, NULL, PREC_UNARY},
+    [RUJA_TOK_IF]         = {NULL, NULL, PREC_NONE},
+    [RUJA_TOK_ELSE]       = {NULL, NULL, PREC_NONE},
+    [RUJA_TOK_ELIF]       = {NULL, NULL, PREC_NONE},
+    [RUJA_TOK_FOR]        = {NULL, NULL, PREC_NONE},
+    [RUJA_TOK_IN]         = {NULL, NULL, PREC_NONE},
+    [RUJA_TOK_PROC]       = {NULL, NULL, PREC_NONE},
+    [RUJA_TOK_RETURN]     = {NULL, NULL, PREC_NONE},
+    [RUJA_TOK_STRUCT]     = {NULL, NULL, PREC_NONE},
+    [RUJA_TOK_ENUM]       = {NULL, NULL, PREC_NONE},
+    [RUJA_TOK_TRUE]       = {NULL, NULL, PREC_NONE},
+    [RUJA_TOK_FALSE]      = {NULL, NULL, PREC_NONE},
+    [RUJA_TOK_LET]        = {NULL, NULL, PREC_NONE},
+    [RUJA_TOK_ID]         = {identifier, NULL, PREC_NONE},
+    [RUJA_TOK_TYPE_I8]    = {NULL, NULL, PREC_NONE},
+    [RUJA_TOK_INT]        = {integer, NULL, PREC_NONE},
+    [RUJA_TOK_FLOAT]      = {floating, NULL, PREC_NONE},
+    [RUJA_TOK_STRING]     = {string, NULL, PREC_NONE},
+    [RUJA_TOK_CHAR]       = {character, NULL, PREC_NONE},
 };
 
+/**
+ * @brief Get the parsing rule associate with a given token kind
+ * 
+ * @param kind The kind of the token
+ * @return Parse_Rule* A pointer to the correct Parse_Rule object
+ */
 static Parse_Rule *get_rule(Ruja_Token_Kind kind)
 {
     return &rules[kind];
 }
 
-static void number_i(Ruja_Parser *parser, Ruja_Lexer *lexer)
+/**
+ * @brief Parser a Token of kind RUJA_TOK_INT
+ * 
+ * @param parser The Parser in use
+ * @param lexer The Lexer is use
+ */
+static void integer(Ruja_Parser *parser, Ruja_Lexer *lexer)
 {
     // Convert the token to the correct type an emit the corresponding bytecode
     // NOTE: For now the bytecode is not implemented so just print the token
     token_to_string(&parser->previous);
 }
 
-static void number_f(Ruja_Parser *parser, Ruja_Lexer *lexer)
+/**
+ * @brief Parser a Token of kind RUJA_TOK_FLOAT
+ * 
+ * @param parser The Parser in use
+ * @param lexer The Lexer is use
+ */
+static void floating(Ruja_Parser *parser, Ruja_Lexer *lexer)
 {
     // Convert the token to the correct type an emit the corresponding bytecode
     // NOTE: For now the bytecode is not implemented so just print the token
     token_to_string(&parser->previous);
 }
 
-static void number_c(Ruja_Parser *parser, Ruja_Lexer *lexer)
+/**
+ * @brief Parser a Token of kind RUJA_TOK_CHAR
+ * 
+ * @param parser The Parser in use
+ * @param lexer The Lexer is use
+ */
+static void character(Ruja_Parser *parser, Ruja_Lexer *lexer)
 {
     // Convert the token to the correct type an emit the corresponding bytecode
     // NOTE: For now the bytecode is not implemented so just print the token
     token_to_string(&parser->previous);
 }
 
+/**
+ * @brief Parser a Token of kind RUJA_TOK_STRING
+ * 
+ * @param parser The Parser in use
+ * @param lexer The Lexer is use
+ */
 static void string(Ruja_Parser *parser, Ruja_Lexer *lexer)
 {
     // Convert the token to the correct type an emit the corresponding bytecode
@@ -200,6 +230,12 @@ static void string(Ruja_Parser *parser, Ruja_Lexer *lexer)
     token_to_string(&parser->previous);
 }
 
+/**
+ * @brief Parser a Token of kind RUJA_TOK_ID
+ * 
+ * @param parser The Parser in use
+ * @param lexer The Lexer is use
+ */
 static void identifier(Ruja_Parser *parser, Ruja_Lexer *lexer)
 {
     // Convert the token to the correct type an emit the corresponding bytecode
@@ -207,6 +243,24 @@ static void identifier(Ruja_Parser *parser, Ruja_Lexer *lexer)
     token_to_string(&parser->previous);
 }
 
+/**
+ * @brief Parser an expression involved in paren
+ * 
+ * @param parser The parser in use
+ * @param lexer The lexer in use
+ */
+static void grouping(Ruja_Parser *parser, Ruja_Lexer *lexer)
+{
+    expression(parser, lexer);
+    expect(parser, lexer, RUJA_TOK_RPAREN, "Unclosed left parenthesis. Expected ')'");
+}
+
+/**
+ * @brief Parser a unary expression
+ * 
+ * @param parser The parser in use
+ * @param lexer The lexer in use
+ */
 static void unary(Ruja_Parser *parser, Ruja_Lexer *lexer)
 {
     assert((parser->previous.kind == RUJA_TOK_NOT || parser->previous.kind == RUJA_TOK_SUB) &&
@@ -223,6 +277,12 @@ static void unary(Ruja_Parser *parser, Ruja_Lexer *lexer)
     token_to_string(&unary_op);
 }
 
+/**
+ * @brief Parses a binary expression
+ * 
+ * @param parser The parser in use
+ * @param lexer The lexer in use
+ */
 static void binary(Ruja_Parser *parser, Ruja_Lexer *lexer)
 {
     assert((parser->previous.kind == RUJA_TOK_SUB || parser->previous.kind == RUJA_TOK_ADD ||
@@ -246,6 +306,12 @@ static void binary(Ruja_Parser *parser, Ruja_Lexer *lexer)
     token_to_string(&binary_op);
 }
 
+/**
+ * @brief Parses a ternary expression
+ * 
+ * @param parser The parser in use
+ * @param lexer The lexer in use
+ */
 static void ternary(Ruja_Parser *parser, Ruja_Lexer *lexer) {
     assert( parser->previous.kind == RUJA_TOK_QUESTION &&
             "This function assumes that a ternary token has been already consumed.");
@@ -261,17 +327,27 @@ static void ternary(Ruja_Parser *parser, Ruja_Lexer *lexer) {
     expression(parser, lexer);
 }
 
-static void grouping(Ruja_Parser *parser, Ruja_Lexer *lexer)
-{
-    expression(parser, lexer);
-    expect(parser, lexer, RUJA_TOK_RPAREN, "Unclosed left parenthesis. Expected ')'");
-}
-
+/**
+ * @brief Top function of expression parsing. All parsing of expression should originate
+ *      in this function
+ * 
+ * @param parser The parser in use
+ * @param lexer The lexer in use
+ */
 static void expression(Ruja_Parser *parser, Ruja_Lexer *lexer)
 {
     parse_precedence(parser, lexer, PREC_ASSIGNMENT);
 }
 
+/**
+ * @brief Given a Precedence level, it begins by calling the prefix parsing function 
+ *      of the 'parser->previous' token and follows with all the infix parsing functions
+ *      of the following Ruja_Token's that have less or equal precedence than the one given.
+ * 
+ * @param parser The parser in use
+ * @param lexer The lexer in use
+ * @param precedence The level of precedence given by the function caller
+ */
 static void parse_precedence(Ruja_Parser *parser, Ruja_Lexer *lexer, Precedence precedence)
 {
     // At this point in the execution the current token can only be a token that has prefix rules (unary, primary or '(')
@@ -310,7 +386,7 @@ static void parse_precedence(Ruja_Parser *parser, Ruja_Lexer *lexer, Precedence 
         or higher than the 'precedence' parameter.
 
     3 - The prefix function we performed was the one of the primary prefix functions
-        (number_i, number_f, number_c, string, identifier). These functions only parse
+        (integer, floating, character, string, identifier). These functions only parse
         one token which means that (once again) we are in the situation that the current
         token is either an expression in which case it has an associated precedence or it
         is not an expression and has no precedence whatsoever. We do exactly the same has
