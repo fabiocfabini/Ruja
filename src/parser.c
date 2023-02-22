@@ -4,7 +4,7 @@
 #include <assert.h>
 #include <errno.h>
 
-#include "parser.h"
+#include "../includes/parser.h"
 
 /**
  * @brief Signals a lexer error to the parser.

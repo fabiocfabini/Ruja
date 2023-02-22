@@ -4,7 +4,7 @@
 #include <ctype.h>
 #include <errno.h>
 
-#include "lexer.h"
+#include "../includes/lexer.h"
 
 /**
  * @brief Sets the start position of the lexer to the current position.
