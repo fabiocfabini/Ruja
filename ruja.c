@@ -31,19 +31,19 @@ void usage() {
     printf("  -v, --version\t\tPrint the version of Ruja.\n");
 }
 
-int main2() {
+int main() {
     Bytecode* bytecode = bytecode_new();
 
     add_opcode(bytecode, OP_CONST, 1);
     size_t index1 = add_constant(bytecode, 1.2);
     add_opcode(bytecode, (uint8_t)(index1), 1);
-    add_opcode(bytecode, OP_HALT, 2);
     add_opcode(bytecode, OP_CONST, 1);
     size_t index2 = add_constant(bytecode, 1.2);
     add_opcode(bytecode, (uint8_t)(index2), 1);
-    add_opcode(bytecode, OP_HALT, 2);
-    add_opcode(bytecode, OP_HALT, 2);
-    add_opcode(bytecode, OP_HALT, 3);
+    add_opcode(bytecode, OP_ADD, 1);
+    add_opcode(bytecode, OP_SUB, 1);
+    add_opcode(bytecode, OP_MUL, 1);
+    add_opcode(bytecode, OP_DIV, 1);
     add_opcode(bytecode, OP_HALT, 2);
 
     disassemble(bytecode, "test");
@@ -52,7 +52,7 @@ int main2() {
     return 0;
 }
 
-int main(int argc, char** argv) {
+int main2(int argc, char** argv) {
     if (argc < 2) {
         usage(); return 1;
     } else {
