@@ -331,7 +331,7 @@ Ruja_Lexer* lexer_new(const char* filepath) {
 
     Ruja_Lexer* lexer = malloc(sizeof(Ruja_Lexer));
     if (lexer == NULL) {
-        fprintf(stderr, "Could not allocate memory for lexer: %s.\n", strerror(errno));
+        fprintf(stderr, "Could not allocate memory for lexer\n");
         free(content);
         return NULL;
     }

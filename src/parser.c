@@ -414,8 +414,10 @@ bool parse(Ruja_Parser *parser, Ruja_Lexer *lexer)
 Ruja_Parser *parser_new()
 {
     Ruja_Parser *parser = malloc(sizeof(Ruja_Parser));
-    if (parser == NULL)
+    if (parser == NULL) {
+        fprintf(stderr, "Failed to allocate memory for parser\n");
         return NULL;
+    }
 
     parser->had_error = false;
     parser->panic_mode = false;

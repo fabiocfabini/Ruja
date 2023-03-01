@@ -3,7 +3,8 @@
 #include <string.h>
 #include <errno.h>
 
-#include "src/parser.h"
+#include "includes/parser.h"
+#include "includes/bytecode.h"
 
 void shift_agrs(int* argc, char*** argv) {
     (*argc)--;
@@ -28,6 +29,27 @@ void usage() {
     printf("Options:\n");
     printf("  -h, --help\t\tPrint this help message.\n");
     printf("  -v, --version\t\tPrint the version of Ruja.\n");
+}
+
+int main2() {
+    Bytecode* bytecode = bytecode_new();
+
+    add_opcode(bytecode, OP_CONST, 1);
+    size_t index1 = add_constant(bytecode, 1.2);
+    add_opcode(bytecode, (uint8_t)(index1), 1);
+    add_opcode(bytecode, OP_HALT, 2);
+    add_opcode(bytecode, OP_CONST, 1);
+    size_t index2 = add_constant(bytecode, 1.2);
+    add_opcode(bytecode, (uint8_t)(index2), 1);
+    add_opcode(bytecode, OP_HALT, 2);
+    add_opcode(bytecode, OP_HALT, 2);
+    add_opcode(bytecode, OP_HALT, 3);
+    add_opcode(bytecode, OP_HALT, 2);
+
+    disassemble(bytecode, "test");
+
+    bytecode_free(bytecode);
+    return 0;
 }
 
 int main(int argc, char** argv) {
