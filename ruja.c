@@ -5,6 +5,7 @@
 
 #include "includes/parser.h"
 #include "includes/bytecode.h"
+#include "includes/stack.h"
 
 void shift_agrs(int* argc, char*** argv) {
     (*argc)--;
@@ -32,6 +33,22 @@ void usage() {
 }
 
 int main() {
+    Stack* stack = stack_new();
+
+
+    stack_trace(stack);
+    stack_push(stack, 1.1);
+    stack_push(stack, 1.2);
+    stack_push(stack, 1.3);
+    stack_push(stack, 1.4);
+    stack_push(stack, 1.5);
+    stack_trace(stack);
+
+    stack_free(stack);
+    return 0;
+}
+
+int main3() {
     Bytecode* bytecode = bytecode_new();
 
     add_opcode(bytecode, OP_CONST, 1);
