@@ -32,7 +32,7 @@ void usage() {
     printf("  -v, --version\t\tPrint the version of Ruja.\n");
 }
 
-int main() {
+int mainx() {
     Stack* stack = stack_new();
 
 
@@ -48,7 +48,7 @@ int main() {
     return 0;
 }
 
-int main3() {
+int main() {
     Bytecode* bytecode = bytecode_new();
 
     add_opcode(bytecode, OP_CONST, 1);
@@ -60,6 +60,7 @@ int main3() {
     add_opcode(bytecode, OP_ADD, 1);
     add_opcode(bytecode, OP_SUB, 1);
     add_opcode(bytecode, OP_MUL, 1);
+    add_opcode(bytecode, OP_NEG, 1);
     add_opcode(bytecode, OP_DIV, 1);
     add_opcode(bytecode, OP_HALT, 2);
 

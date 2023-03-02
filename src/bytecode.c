@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 
 #include "../includes/bytecode.h"
 #include "../includes/memory.h"
@@ -50,10 +51,12 @@ void add_opcode(Bytecode* bytecode, uint8_t byte, size_t line) {
 }
 
 static void disassemble_instruction(Bytecode* bytecode, size_t* index) {
+    static_assert(OP_COUNT == 7, "OP_COUNT must be 7");
     switch (bytecode->items[*index]) {
         default:       printf("%14s |%14s |", "Unknown", "-----"); break;
         case OP_HALT:  printf("%14s |%14s |", "HALT", "-----"); break;
         case OP_ADD:   printf("%14s |%14s |", "ADD", "-----"); break;
+        case OP_NEG:   printf("%14s |%14s |", "NEG", "-----"); break;
         case OP_SUB:   printf("%14s |%14s |", "SUB", "-----"); break;
         case OP_MUL:   printf("%14s |%14s |", "MUL", "-----"); break;
         case OP_DIV:   printf("%14s |%14s |", "DIV", "-----"); break;
