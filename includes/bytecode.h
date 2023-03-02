@@ -12,7 +12,6 @@ typedef enum {
     OP_MUL,
     OP_DIV,
     OP_CONST,
-    OP_COUNT,
 } Opcode;
 
 typedef struct {
@@ -31,6 +30,7 @@ void bytecode_free(Bytecode* bytecode);
 size_t add_constant(Bytecode* bytecode, Word word);
 void add_opcode(Bytecode* bytecode, uint8_t byte, size_t line);
 
+const char* opcode_to_string(Opcode opcode);
 void disassemble(Bytecode* bytecode, const char* name);
 
 void save_bytecode(Bytecode* bytecode, const char* filename);
