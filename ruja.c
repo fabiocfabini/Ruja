@@ -6,6 +6,7 @@
 #include "includes/parser.h"
 #include "includes/bytecode.h"
 #include "includes/stack.h"
+#include "includes/vm.h"
 
 void shift_agrs(int* argc, char*** argv) {
     (*argc)--;
@@ -49,25 +50,22 @@ int mainx() {
 }
 
 int main() {
-    Bytecode* bytecode = bytecode_new();
+    Ruja_Vm* vm = vm_new();
 
-    add_opcode(bytecode, OP_CONST, 1);
-    size_t index1 = add_constant(bytecode, 1.2);
-    add_opcode(bytecode, (uint8_t)(index1), 1);
-    add_opcode(bytecode, OP_CONST, 1);
-    size_t index2 = add_constant(bytecode, 1.2);
-    add_opcode(bytecode, (uint8_t)(index2), 1);
-    add_opcode(bytecode, OP_ADD, 1);
-    add_opcode(bytecode, OP_SUB, 1);
-    add_opcode(bytecode, OP_MUL, 1);
-    add_opcode(bytecode, OP_NEG, 1);
-    add_opcode(bytecode, OP_DIV, 1);
-    add_opcode(bytecode, OP_HALT, 2);
+    size_t index = add_constant(vm->bytecode, 0);
+    add_opcode(vm->bytecode, OP_CONST, 1);
+    add_opcode(vm->bytecode, (uint8_t) index, 1);
+    add_opcode(vm->bytecode, OP_NEG, 1);
+    add_opcode(vm->bytecode, OP_CONST, 1);
+    add_opcode(vm->bytecode, (uint8_t) index, 1);
+    add_opcode(vm->bytecode, OP_DIV, 1);
+    add_opcode(vm->bytecode, OP_HALT, 2);
 
-    disassemble(bytecode, "test");
+    vm_run(vm);
 
-    bytecode_free(bytecode);
+    vm_free(vm);
     return 0;
+
 }
 
 int main2(int argc, char** argv) {
