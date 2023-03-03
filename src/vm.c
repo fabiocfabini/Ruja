@@ -46,7 +46,7 @@ Ruja_Vm_Status vm_run(Ruja_Vm *vm) {
             return RUJA_VM_ERROR;
         }
 
-        #if 0
+        #if 1
 
         printf("ip=%5"PRIu64" [%8s]", vm->ip, opcode_to_string(vm->bytecode->items[vm->ip]));
         stack_trace(vm->stack);
@@ -71,6 +71,10 @@ Ruja_Vm_Status vm_run(Ruja_Vm *vm) {
                 vm->stack->items[vm->stack->count-1] = -vm->stack->items[vm->stack->count-1];
                 vm->ip++;
             } break;
+            case OP_NOT: {
+                vm->stack->items[vm->stack->count-1] = !vm->stack->items[vm->stack->count-1];
+                vm->ip++;
+            } break;
             case OP_ADD: {
                 vm->stack->items[vm->stack->count-2] += vm->stack->items[vm->stack->count-1];
                 vm->stack->count--;
@@ -93,6 +97,46 @@ Ruja_Vm_Status vm_run(Ruja_Vm *vm) {
                 }
 
                 vm->stack->items[vm->stack->count-2] /= vm->stack->items[vm->stack->count-1];
+                vm->stack->count--;
+                vm->ip++;
+            } break;
+            case OP_EQ: {
+                vm->stack->items[vm->stack->count-2] = vm->stack->items[vm->stack->count-2] == vm->stack->items[vm->stack->count-1];
+                vm->stack->count--;
+                vm->ip++;
+            } break;
+            case OP_NEQ: {
+                vm->stack->items[vm->stack->count-2] = vm->stack->items[vm->stack->count-2] != vm->stack->items[vm->stack->count-1];
+                vm->stack->count--;
+                vm->ip++;
+            } break;
+            case OP_LT: {
+                vm->stack->items[vm->stack->count-2] = vm->stack->items[vm->stack->count-2] < vm->stack->items[vm->stack->count-1];
+                vm->stack->count--;
+                vm->ip++;
+            } break;
+            case OP_LTE: {
+                vm->stack->items[vm->stack->count-2] = vm->stack->items[vm->stack->count-2] <= vm->stack->items[vm->stack->count-1];
+                vm->stack->count--;
+                vm->ip++;
+            } break;
+            case OP_GT: {
+                vm->stack->items[vm->stack->count-2] = vm->stack->items[vm->stack->count-2] > vm->stack->items[vm->stack->count-1];
+                vm->stack->count--;
+                vm->ip++;
+            } break;
+            case OP_GTE: {
+                vm->stack->items[vm->stack->count-2] = vm->stack->items[vm->stack->count-2] >= vm->stack->items[vm->stack->count-1];
+                vm->stack->count--;
+                vm->ip++;
+            } break;
+            case OP_AND: {
+                vm->stack->items[vm->stack->count-2] = vm->stack->items[vm->stack->count-2] && vm->stack->items[vm->stack->count-1];
+                vm->stack->count--;
+                vm->ip++;
+            } break;
+            case OP_OR: {
+                vm->stack->items[vm->stack->count-2] = vm->stack->items[vm->stack->count-2] || vm->stack->items[vm->stack->count-1];
                 vm->stack->count--;
                 vm->ip++;
             } break;

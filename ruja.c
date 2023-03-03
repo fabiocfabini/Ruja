@@ -52,13 +52,14 @@ int mainx() {
 int main() {
     Ruja_Vm* vm = vm_new();
 
-    size_t index = add_constant(vm->bytecode, 0);
+    size_t index1 = add_constant(vm->bytecode, 1);
+    size_t index2 = add_constant(vm->bytecode, 0);
     add_opcode(vm->bytecode, OP_CONST, 1);
-    add_opcode(vm->bytecode, (uint8_t) index, 1);
+    add_opcode(vm->bytecode, (uint8_t) index1, 1);
     add_opcode(vm->bytecode, OP_NEG, 1);
     add_opcode(vm->bytecode, OP_CONST, 1);
-    add_opcode(vm->bytecode, (uint8_t) index, 1);
-    add_opcode(vm->bytecode, OP_DIV, 1);
+    add_opcode(vm->bytecode, (uint8_t) index2, 1);
+    add_opcode(vm->bytecode, OP_LT, 1);
     add_opcode(vm->bytecode, OP_HALT, 2);
 
     vm_run(vm);

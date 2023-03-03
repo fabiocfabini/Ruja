@@ -6,11 +6,25 @@
 
 typedef enum {
     OP_HALT,
+
+    OP_NOT,
     OP_NEG,
+
     OP_ADD,
     OP_SUB,
     OP_MUL,
     OP_DIV,
+
+    OP_EQ,
+    OP_NEQ,
+    OP_LT,
+    OP_LTE,
+    OP_GT,
+    OP_GTE,
+
+    OP_AND,
+    OP_OR,
+
     OP_CONST,
 } Opcode;
 

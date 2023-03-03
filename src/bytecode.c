@@ -55,11 +55,20 @@ static void disassemble_instruction(Bytecode* bytecode, size_t* index) {
     switch (opcode) {
         default:       printf("%14s |%14s |", "Unknown", "-----"); break;
         case OP_HALT:  printf("%14s |%14s |", "HALT", "-----"); break;
-        case OP_ADD:   printf("%14s |%14s |", "ADD", "-----"); break;
         case OP_NEG:   printf("%14s |%14s |", "NEG", "-----"); break;
+        case OP_NOT:   printf("%14s |%14s |", "NOT", "-----"); break;
+        case OP_ADD:   printf("%14s |%14s |", "ADD", "-----"); break;
         case OP_SUB:   printf("%14s |%14s |", "SUB", "-----"); break;
         case OP_MUL:   printf("%14s |%14s |", "MUL", "-----"); break;
         case OP_DIV:   printf("%14s |%14s |", "DIV", "-----"); break;
+        case OP_EQ:    printf("%14s |%14s |", "EQ", "-----"); break;
+        case OP_NEQ:   printf("%14s |%14s |", "NEQ", "-----"); break;
+        case OP_LT:    printf("%14s |%14s |", "LT", "-----"); break;
+        case OP_LTE:   printf("%14s |%14s |", "LTE", "-----"); break;
+        case OP_GT:    printf("%14s |%14s |", "GT", "-----"); break;
+        case OP_GTE:   printf("%14s |%14s |", "GTE", "-----"); break;
+        case OP_AND:   printf("%14s |%14s |", "AND", "-----"); break;
+        case OP_OR:    printf("%14s |%14s |", "OR", "-----"); break;
         case OP_CONST: printf("%14s |%14lf |", "CONST", bytecode->constant_words->items[bytecode->items[++(*index)]]); break;
     }
 }
@@ -68,11 +77,20 @@ const char* opcode_to_string(Opcode opcode) {
     switch (opcode) {
         default:       return "Unknown";
         case OP_HALT:  return "HALT";
-        case OP_ADD:   return "ADD";
         case OP_NEG:   return "NEG";
+        case OP_NOT:   return "NOT";
+        case OP_ADD:   return "ADD";
         case OP_SUB:   return "SUB";
         case OP_MUL:   return "MUL";
         case OP_DIV:   return "DIV";
+        case OP_EQ:    return "EQ";
+        case OP_NEQ:   return "NEQ";
+        case OP_LT:    return "LT";
+        case OP_LTE:   return "LTE";
+        case OP_GT:    return "GT";
+        case OP_GTE:   return "GTE";
+        case OP_AND:   return "AND";
+        case OP_OR:    return "OR";
         case OP_CONST: return "CONST";
     }
 }
