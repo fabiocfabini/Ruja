@@ -166,7 +166,7 @@ static Parse_Rule rules[] = {
  * @return Parse_Rule* A pointer to the correct Parse_Rule object
  */
 static Parse_Rule *get_rule(Ruja_Token_Kind kind) {
-    return &rules[kind];
+    return kind >= 0 ? &rules[kind]: &rules[0]; // Rule 0 has all NULL pointers it can act as a default
 }
 
 /**
