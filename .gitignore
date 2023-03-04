@@ -1,5 +1,5 @@
 build/*
 exe/*
 .vscode/*
-*.png
+*.pdf
 *.dot
