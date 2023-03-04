@@ -27,7 +27,7 @@ bool endswith(const char* str, const char* suffix) {
 }
 
 void usage() {
-    printf("Usage: <path-to>/ruja <input-file> [OPTIONS]\n");
+    printf("Usage: <path-to>/ruja [OPTIONS] <input-file>\n");
     printf("\n");
     printf("Options:\n");
     printf("  -h, --help\t\tPrint this help message.\n");
