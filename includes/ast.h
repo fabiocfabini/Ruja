@@ -1,6 +1,8 @@
 #ifndef RUJA_AST_H
 #define RUJA_AST_H
 
+#include <stdio.h>
+
 #include "common.h"
 #include "lexer.h"
 #include "word.h"
@@ -18,11 +20,11 @@ typedef enum {
     AST_BINARY_OP_MUL,
     AST_BINARY_OP_DIV,
     AST_BINARY_OP_EQ,
-    AST_BINARY_OP_NEQ,
+    AST_BINARY_OP_NE,
     AST_BINARY_OP_LT,
-    AST_BINARY_OP_LTE,
+    AST_BINARY_OP_LE,
     AST_BINARY_OP_GT,
-    AST_BINARY_OP_GTE,
+    AST_BINARY_OP_GE,
     AST_BINARY_OP_AND,
     AST_BINARY_OP_OR,
 } ast_binary_op_type;
