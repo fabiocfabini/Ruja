@@ -144,50 +144,81 @@ static size_t increment(size_t* id) {
     return ++(*id);
 }
 
+static void dot_node(FILE* file, size_t id, const char* label, const char* color, const char* style) {
+    fprintf(file, "    %zu [label=\"%s\", fillcolor=\"%s\", style=\"%s\"];\n", id, label, color?color:"black", style?style:"");
+}
+
+static void dot_node_word(FILE* file, size_t id, Word word, const char* color, const char* style) {
+    fprintf(file, "    %zu [label=\"%lf\", fillcolor=\"%s\", style=\"%s\"];\n", id, word, color?color:"black", style?style:"");
+}
+
+static void dot_arrow(FILE* file, size_t from, size_t to, const char* label) {
+    fprintf(file, "    %zu -> %zu [label=\"%s\"];\n", from, to, label);
+}
+
 static void ast_dot_internal(Ruja_Ast ast, FILE* file, size_t* id) {
+// Dark colors
+#define DARK_BLUE "#0000CC"
+#define DARK_GREEN "#00CC00"
+#define DARK_RED "#CC0000"
+
+// Light colors
+#define EXPRESSION_COLOR "#CCE6FF"
+#define LITERAL_COLOR "#CCFFCC"
+#define ARITHMETIC_COLOR "#FFCCCC"
     if (ast == NULL) return;
 
     size_t root_id = *id;
     switch (ast->type) {
         case AST_NODE_EMPTY:
-            fprintf(file, "    %zu [label=\"Empty\"];\n", root_id);
+            dot_node(file, root_id, "Empty", DARK_RED, "filled");
             break;
         case AST_NODE_NUMBER:
-            fprintf(file, "    %zu [label=\"Number\"];\n", root_id);
-            fprintf(file, "    %zu -> %zu [label=\"word\"];\n", root_id, increment(id));
-            fprintf(file, "    %zu [label=\"%lf\", color=green];\n", *id, ast->as.number.word);
+            dot_node(file, root_id, "Number", EXPRESSION_COLOR, "filled");
+            dot_arrow(file, root_id, increment(id), "word");
+            dot_node_word(file, *id, ast->as.number.word, LITERAL_COLOR, "filled");
             break;
         case AST_NODE_UNARY_OP:
-            fprintf(file, "    %zu [label=\"UnaryOp\"];\n", root_id);
-            fprintf(file, "    %zu -> %zu [label=\"type\"];\n", root_id, increment(id));
-            fprintf(file, "    %zu [label=\"%s\", color=blue];\n", *id, ast_unary_op_type_to_string(ast->as.unary_op.type));
-            fprintf(file, "    %zu -> %zu [label=\"expression\"];\n", root_id, increment(id));
+            dot_node(file, root_id, "UnaryOp", EXPRESSION_COLOR, "filled");
+            dot_arrow(file, root_id, increment(id), "type");
+            dot_node(file, *id, ast_unary_op_type_to_string(ast->as.unary_op.type), ARITHMETIC_COLOR, "filled");
+            dot_arrow(file, root_id, increment(id), "expression");
             ast_dot_internal(ast->as.unary_op.expression, file, id);
             break;
         case AST_NODE_BINARY_OP:
-            fprintf(file, "    %zu [label=\"BinaryOp\"];\n", root_id);
-            fprintf(file, "    %zu -> %zu [label=\"left_expression\"];\n", root_id, increment(id));
+            dot_node(file, root_id, "BinaryOp", EXPRESSION_COLOR, "filled");
+            dot_arrow(file, root_id, increment(id), "left_expression");
             ast_dot_internal(ast->as.binary_op.left_expression, file, id);
-            fprintf(file, "    %zu -> %zu [label=\"type\"];\n", root_id, increment(id));
-            fprintf(file, "    %zu [label=\"%s\", color=red];\n", *id, ast_binary_op_type_to_string(ast->as.binary_op.type));
-            fprintf(file, "    %zu -> %zu [label=\"right_expression\"];\n", root_id, increment(id));
+            dot_arrow(file, root_id, increment(id), "type");
+            dot_node(file, *id, ast_binary_op_type_to_string(ast->as.binary_op.type), ARITHMETIC_COLOR, "filled");
+            dot_arrow(file, root_id, increment(id), "right_expression");
             ast_dot_internal(ast->as.binary_op.right_expression, file, id);
             break;
         case AST_NODE_TERNARY_OP:
-            fprintf(file, "    %zu [label=\"TernaryOp\", color=purple];\n", root_id);
-            fprintf(file, "    %zu -> %zu [label=\"condition\"];\n", root_id, increment(id));
+            dot_node(file, root_id, "TernaryOp", EXPRESSION_COLOR, "filled");
+            dot_arrow(file, root_id, increment(id), "condition");
             ast_dot_internal(ast->as.ternary_op.condition, file, id);
-            fprintf(file, "    %zu -> %zu [label=\"true_expression\"];\n", root_id, increment(id));
+            dot_arrow(file, root_id, increment(id), "true_expression");
             ast_dot_internal(ast->as.ternary_op.true_expression, file, id);
-            fprintf(file, "    %zu -> %zu [label=\"false_expression\"];\n", root_id, increment(id));
+            dot_arrow(file, root_id, increment(id), "false_expression");
             ast_dot_internal(ast->as.ternary_op.false_expression, file, id);
             break;
         case AST_NODE_EXPRESSION:
-            fprintf(file, "    %zu [label=\"Expression\"];\n", root_id);
-            fprintf(file, "    %zu -> %zu [label=\"expression\"];\n", root_id, increment(id));
+            dot_node(file, root_id, "Expression", EXPRESSION_COLOR, "filled");
+            dot_arrow(file, root_id, increment(id), "expression");
             ast_dot_internal(ast->as.expr.expression, file, id);
             break;
     }
+
+// Dark colors
+#undef DARK_BLUE
+#undef DARK_GREEN
+#undef DARK_RED
+
+// Light colors
+#undef EXPRESSION_COLOR
+#undef LITERAL_COLOR
+#undef ARITHMETIC_COLOR
 }
 
 void ast_dot(Ruja_Ast ast, FILE *file) {
