@@ -101,9 +101,9 @@ Ruja_Ast ast_new_expression(Ruja_Ast expression) {
 const char *ast_unary_op_type_to_string(ast_unary_op_type type) {
     switch (type) {
         case AST_UNARY_OP_NOT:
-            return "-";
-        case AST_UNARY_OP_NEG:
             return "not";
+        case AST_UNARY_OP_NEG:
+            return "-";
         default:
             return "unknown";
     }
@@ -155,12 +155,12 @@ static void ast_dot_internal(Ruja_Ast ast, FILE* file, size_t* id) {
         case AST_NODE_NUMBER:
             fprintf(file, "    %zu [label=\"Number\"];\n", root_id);
             fprintf(file, "    %zu -> %zu [label=\"word\"];\n", root_id, increment(id));
-            fprintf(file, "    %zu [label=\"%lf\"];\n", *id, ast->as.number.word);
+            fprintf(file, "    %zu [label=\"%lf\", color=green];\n", *id, ast->as.number.word);
             break;
         case AST_NODE_UNARY_OP:
             fprintf(file, "    %zu [label=\"UnaryOp\"];\n", root_id);
             fprintf(file, "    %zu -> %zu [label=\"type\"];\n", root_id, increment(id));
-            fprintf(file, "    %zu [label=\"%s\"];\n", *id, ast_unary_op_type_to_string(ast->as.unary_op.type));
+            fprintf(file, "    %zu [label=\"%s\", color=blue];\n", *id, ast_unary_op_type_to_string(ast->as.unary_op.type));
             fprintf(file, "    %zu -> %zu [label=\"expression\"];\n", root_id, increment(id));
             ast_dot_internal(ast->as.unary_op.expression, file, id);
             break;
@@ -169,12 +169,12 @@ static void ast_dot_internal(Ruja_Ast ast, FILE* file, size_t* id) {
             fprintf(file, "    %zu -> %zu [label=\"left_expression\"];\n", root_id, increment(id));
             ast_dot_internal(ast->as.binary_op.left_expression, file, id);
             fprintf(file, "    %zu -> %zu [label=\"type\"];\n", root_id, increment(id));
-            fprintf(file, "    %zu [label=\"%s\"];\n", *id, ast_binary_op_type_to_string(ast->as.binary_op.type));
+            fprintf(file, "    %zu [label=\"%s\", color=red];\n", *id, ast_binary_op_type_to_string(ast->as.binary_op.type));
             fprintf(file, "    %zu -> %zu [label=\"right_expression\"];\n", root_id, increment(id));
             ast_dot_internal(ast->as.binary_op.right_expression, file, id);
             break;
         case AST_NODE_TERNARY_OP:
-            fprintf(file, "    %zu [label=\"TernaryOp\"];\n", root_id);
+            fprintf(file, "    %zu [label=\"TernaryOp\", color=purple];\n", root_id);
             fprintf(file, "    %zu -> %zu [label=\"condition\"];\n", root_id, increment(id));
             ast_dot_internal(ast->as.ternary_op.condition, file, id);
             fprintf(file, "    %zu -> %zu [label=\"true_expression\"];\n", root_id, increment(id));
@@ -192,7 +192,7 @@ static void ast_dot_internal(Ruja_Ast ast, FILE* file, size_t* id) {
 
 void ast_dot(Ruja_Ast ast, FILE *file) {
     fprintf(file, "digraph ast {\n");
-    fprintf(file, "    layout=sfdp;\n");
+    fprintf(file, "    graph [rankdir=LR];\n");
     fprintf(file, "    node [shape=box];\n");
     size_t id = 0;
     ast_dot_internal(ast, file, &id);
