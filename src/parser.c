@@ -11,8 +11,7 @@
  *
  * @param parser The parser being signaled.
  */
-static void signal_lexer_error(Ruja_Parser *parser)
-{
+static void signal_lexer_error(Ruja_Parser *parser) {
     if (parser->panic_mode)
         return;
     parser->panic_mode = true;
@@ -27,8 +26,7 @@ static void signal_lexer_error(Ruja_Parser *parser)
  * @param lexer The lexer that holds the source file.
  * @param msg The error message.
  */
-static void parser_error(Ruja_Parser *parser, Ruja_Lexer *lexer, const char *msg)
-{
+static void parser_error(Ruja_Parser *parser, Ruja_Lexer *lexer, const char *msg) {
     if (parser->panic_mode)
         return;
     parser->panic_mode = true;
@@ -43,12 +41,10 @@ static void parser_error(Ruja_Parser *parser, Ruja_Lexer *lexer, const char *msg
  * @param parser The parser being advanced.
  * @param lexer The lexer that holds the source file.
  */
-static void advance(Ruja_Parser *parser, Ruja_Lexer *lexer)
-{
+static void advance(Ruja_Parser *parser, Ruja_Lexer *lexer) {
     parser->previous = parser->current;
 
-    while (true)
-    {
+    while (true) {
         parser->current = next_token(lexer);
 
         if (parser->current.kind != RUJA_TOK_ERR)
@@ -66,10 +62,8 @@ static void advance(Ruja_Parser *parser, Ruja_Lexer *lexer)
  * @param kind The kind of token to check for.
  * @param msg The error message.
  */
-static void expect(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Token_Kind kind, const char *msg)
-{
-    if (parser->current.kind == kind)
-    {
+static void expect(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Token_Kind kind, const char *msg) {
+    if (parser->current.kind == kind) {
         advance(parser, lexer);
         return;
     }
@@ -77,8 +71,7 @@ static void expect(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Token_Kind kind,
     parser_error(parser, lexer, msg);
 }
 
-typedef enum
-{
+typedef enum {
     PREC_NONE,
     PREC_ASSIGNMENT, // =
     PREC_QUESTION,   // ? :
@@ -93,25 +86,24 @@ typedef enum
     PREC_PRIMARY
 } Precedence;
 
-typedef void (*Parser_Function)(Ruja_Parser *, Ruja_Lexer *);
-typedef struct
-{
+typedef void (*Parser_Function)(Ruja_Parser *, Ruja_Lexer *, Ruja_Ast *);
+typedef struct {
     Parser_Function prefix;
     Parser_Function infix;
     Precedence precedence;
 } Parse_Rule;
 
-static void expression(Ruja_Parser *parser, Ruja_Lexer *lexer);
-static void ternary(Ruja_Parser *parser, Ruja_Lexer *lexer);
-static void binary(Ruja_Parser *parser, Ruja_Lexer *lexer);
-static void unary(Ruja_Parser *parser, Ruja_Lexer *lexer);
-static void integer(Ruja_Parser *parser, Ruja_Lexer *lexer);
-static void floating(Ruja_Parser *parser, Ruja_Lexer *lexer);
-static void character(Ruja_Parser *parser, Ruja_Lexer *lexer);
-static void string(Ruja_Parser *parser, Ruja_Lexer *lexer);
-static void identifier(Ruja_Parser *parser, Ruja_Lexer *lexer);
-static void grouping(Ruja_Parser *parser, Ruja_Lexer *lexer);
-static void parse_precedence(Ruja_Parser *parser, Ruja_Lexer *lexer, Precedence precedence);
+static void expression(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
+static void ternary(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
+static void binary(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
+static void unary(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
+static void integer(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
+static void floating(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
+static void character(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
+static void string(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
+static void identifier(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
+static void grouping(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
+static void parse_precedence(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast, Precedence precedence);
 
 static Parse_Rule rules[] = {
     [RUJA_TOK_LBRACE]     = {NULL, NULL, PREC_NONE},
@@ -173,8 +165,7 @@ static Parse_Rule rules[] = {
  * @param kind The kind of the token
  * @return Parse_Rule* A pointer to the correct Parse_Rule object
  */
-static Parse_Rule *get_rule(Ruja_Token_Kind kind)
-{
+static Parse_Rule *get_rule(Ruja_Token_Kind kind) {
     return &rules[kind];
 }
 
@@ -184,11 +175,9 @@ static Parse_Rule *get_rule(Ruja_Token_Kind kind)
  * @param parser The Parser in use
  * @param lexer The Lexer is use
  */
-static void integer(Ruja_Parser *parser, Ruja_Lexer *lexer)
-{
-    // Convert the token to the correct type an emit the corresponding bytecode
-    // NOTE: For now the bytecode is not implemented so just print the token
-    token_to_string(&parser->previous);
+static void integer(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
+    Word integer = strtod(parser->previous.start, NULL);
+    (*ast) = ast_new_number(integer);
 }
 
 /**
@@ -197,11 +186,8 @@ static void integer(Ruja_Parser *parser, Ruja_Lexer *lexer)
  * @param parser The Parser in use
  * @param lexer The Lexer is use
  */
-static void floating(Ruja_Parser *parser, Ruja_Lexer *lexer)
-{
-    // Convert the token to the correct type an emit the corresponding bytecode
-    // NOTE: For now the bytecode is not implemented so just print the token
-    token_to_string(&parser->previous);
+static void floating(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
+    NOT_IMPLEMENTED("Floating point parsing", __FILE__, __LINE__);
 }
 
 /**
@@ -210,11 +196,8 @@ static void floating(Ruja_Parser *parser, Ruja_Lexer *lexer)
  * @param parser The Parser in use
  * @param lexer The Lexer is use
  */
-static void character(Ruja_Parser *parser, Ruja_Lexer *lexer)
-{
-    // Convert the token to the correct type an emit the corresponding bytecode
-    // NOTE: For now the bytecode is not implemented so just print the token
-    token_to_string(&parser->previous);
+static void character(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
+    NOT_IMPLEMENTED("Character parsing", __FILE__, __LINE__);
 }
 
 /**
@@ -223,11 +206,8 @@ static void character(Ruja_Parser *parser, Ruja_Lexer *lexer)
  * @param parser The Parser in use
  * @param lexer The Lexer is use
  */
-static void string(Ruja_Parser *parser, Ruja_Lexer *lexer)
-{
-    // Convert the token to the correct type an emit the corresponding bytecode
-    // NOTE: For now the bytecode is not implemented so just print the token
-    token_to_string(&parser->previous);
+static void string(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
+    NOT_IMPLEMENTED("String parsing", __FILE__, __LINE__);
 }
 
 /**
@@ -236,11 +216,8 @@ static void string(Ruja_Parser *parser, Ruja_Lexer *lexer)
  * @param parser The Parser in use
  * @param lexer The Lexer is use
  */
-static void identifier(Ruja_Parser *parser, Ruja_Lexer *lexer)
-{
-    // Convert the token to the correct type an emit the corresponding bytecode
-    // NOTE: For now the bytecode is not implemented so just print the token
-    token_to_string(&parser->previous);
+static void identifier(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
+    NOT_IMPLEMENTED("Identifier parsing", __FILE__, __LINE__);
 }
 
 /**
@@ -249,11 +226,52 @@ static void identifier(Ruja_Parser *parser, Ruja_Lexer *lexer)
  * @param parser The parser in use
  * @param lexer The lexer in use
  */
-static void grouping(Ruja_Parser *parser, Ruja_Lexer *lexer)
-{
-    expression(parser, lexer);
+static void grouping(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
+    expression(parser, lexer, ast);
     expect(parser, lexer, RUJA_TOK_RPAREN, "Unclosed left parenthesis. Expected ')'");
 }
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wswitch-enum"
+
+/**
+ * @brief Convert a token unary operator to an ast unary operator
+ * 
+ * @param kind The token kind
+ * @return ast_unary_op_type The ast unary operator 
+ */
+static ast_unary_op_type token_unary_to_ast_unary(Ruja_Token_Kind kind) {
+    switch (kind) {
+        case RUJA_TOK_NOT: return AST_UNARY_OP_NOT;
+        case RUJA_TOK_SUB: return AST_UNARY_OP_NEG;
+        default: assert(false && "Invalid binary operator");
+    }
+}
+
+/**
+ * @brief Convert a token binary operator to an ast binary operator
+ * 
+ * @param kind The token kind
+ * @return ast_binary_op_type The ast binary operator 
+ */
+static ast_binary_op_type token_binary_to_ast_binary(Ruja_Token_Kind kind) {
+    switch (kind) {
+        case RUJA_TOK_ADD: return AST_BINARY_OP_ADD;
+        case RUJA_TOK_SUB: return AST_BINARY_OP_SUB;
+        case RUJA_TOK_MUL: return AST_BINARY_OP_MUL;
+        case RUJA_TOK_DIV: return AST_BINARY_OP_DIV;
+        case RUJA_TOK_AND: return AST_BINARY_OP_AND;
+        case RUJA_TOK_OR:  return AST_BINARY_OP_OR;
+        case RUJA_TOK_EQ:  return AST_BINARY_OP_EQ;
+        case RUJA_TOK_NE:  return AST_BINARY_OP_NE;
+        case RUJA_TOK_GT:  return AST_BINARY_OP_GT;
+        case RUJA_TOK_LT:  return AST_BINARY_OP_LT;
+        case RUJA_TOK_GE:  return AST_BINARY_OP_GE;
+        case RUJA_TOK_LE:  return AST_BINARY_OP_LE;
+        default: assert(false && "Invalid binary operator");
+    }
+}
+#pragma GCC diagnostic pop
 
 /**
  * @brief Parser a unary expression
@@ -261,20 +279,18 @@ static void grouping(Ruja_Parser *parser, Ruja_Lexer *lexer)
  * @param parser The parser in use
  * @param lexer The lexer in use
  */
-static void unary(Ruja_Parser *parser, Ruja_Lexer *lexer)
-{
+static void unary(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
     assert((parser->previous.kind == RUJA_TOK_NOT || parser->previous.kind == RUJA_TOK_SUB) &&
             "This function assumes that a unary token has been already consumed.");
 
     // Save the previous unary operation
     Ruja_Token unary_op = parser->previous;
+    Ruja_Ast unary = ast_new_unary_op(token_unary_to_ast_unary(unary_op.kind), NULL);
 
     // Parse any following expressions that have equal or higher precedence
-    parse_precedence(parser, lexer, PREC_UNARY);
+    parse_precedence(parser, lexer, &unary->as.unary_op.expression, PREC_UNARY);
 
-    // Emit byte code fot the correct operation
-    // NOTE: For now bytecode is not implemented just print the token
-    token_to_string(&unary_op);
+    *ast = unary;
 }
 
 /**
@@ -283,8 +299,7 @@ static void unary(Ruja_Parser *parser, Ruja_Lexer *lexer)
  * @param parser The parser in use
  * @param lexer The lexer in use
  */
-static void binary(Ruja_Parser *parser, Ruja_Lexer *lexer)
-{
+static void binary(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
     assert((parser->previous.kind == RUJA_TOK_SUB || parser->previous.kind == RUJA_TOK_ADD ||
             parser->previous.kind == RUJA_TOK_DIV || parser->previous.kind == RUJA_TOK_MUL ||
             parser->previous.kind == RUJA_TOK_AND || parser->previous.kind == RUJA_TOK_OR  ||
@@ -295,15 +310,14 @@ static void binary(Ruja_Parser *parser, Ruja_Lexer *lexer)
 
     // Save the current binary operation
     Ruja_Token binary_op = parser->previous;
+    Ruja_Ast binary = ast_new_binary_op(token_binary_to_ast_binary(binary_op.kind), *ast, NULL);
 
     // Parse any following expressions that have higher precedence
     // Since not all binary operations have the same precedence we must search for it
     Precedence binary_op_precedence = get_rule(parser->previous.kind)->precedence;
-    parse_precedence(parser, lexer, binary_op_precedence + 1);
+    parse_precedence(parser, lexer, &binary->as.binary_op.right_expression, binary_op_precedence + 1);
 
-    // Emit byte code fot the correct operation
-    // NOTE: For now bytecode is not implemented just print the token
-    token_to_string(&binary_op);
+    (*ast) = binary;
 }
 
 /**
@@ -312,19 +326,23 @@ static void binary(Ruja_Parser *parser, Ruja_Lexer *lexer)
  * @param parser The parser in use
  * @param lexer The lexer in use
  */
-static void ternary(Ruja_Parser *parser, Ruja_Lexer *lexer) {
+static void ternary(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
+    // At this point the ast is the expression branch of the AST_NODE_EXPRESSION node
+    // this needs to be changed to the condition branch of the AST_NODE_TERNARY node
     assert( parser->previous.kind == RUJA_TOK_QUESTION &&
             "This function assumes that a ternary token has been already consumed.");
 
-    token_to_string(&parser->previous);
-    expression(parser, lexer);
+    Ruja_Ast ternary = ast_new_ternary_op(*ast, NULL, NULL);
+
+    expression(parser, lexer, &ternary->as.ternary_op.true_expression);
 
     assert( parser->current.kind == RUJA_TOK_COLON &&
             "This function assumes that a ternary token has been already consumed.");
 
     advance(parser, lexer);
-    token_to_string(&parser->previous);
-    expression(parser, lexer);
+    expression(parser, lexer, &ternary->as.ternary_op.false_expression);
+
+    (*ast) = ternary;
 }
 
 /**
@@ -334,9 +352,9 @@ static void ternary(Ruja_Parser *parser, Ruja_Lexer *lexer) {
  * @param parser The parser in use
  * @param lexer The lexer in use
  */
-static void expression(Ruja_Parser *parser, Ruja_Lexer *lexer)
-{
-    parse_precedence(parser, lexer, PREC_ASSIGNMENT);
+static void expression(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
+    // At this point ast is the expression branch of the AST_NODE_EXPRESSION node
+    parse_precedence(parser, lexer, ast, PREC_ASSIGNMENT);
 }
 
 /**
@@ -348,8 +366,7 @@ static void expression(Ruja_Parser *parser, Ruja_Lexer *lexer)
  * @param lexer The lexer in use
  * @param precedence The level of precedence given by the function caller
  */
-static void parse_precedence(Ruja_Parser *parser, Ruja_Lexer *lexer, Precedence precedence)
-{
+static void parse_precedence(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast, Precedence precedence) {
     // At this point in the execution the current token can only be a token that has prefix rules (unary, primary or '(')
     // Get the current token's prefix rule
     advance(parser, lexer);
@@ -362,7 +379,7 @@ static void parse_precedence(Ruja_Parser *parser, Ruja_Lexer *lexer, Precedence 
 
     // Consume the current token since prefix rules expect the token to be in previous
     // Execute the obtained prefix rule
-    prefix_rule(parser, lexer);
+    prefix_rule(parser, lexer, ast);
 
     /*
     At this point there are 3 possible outcomes that have the same resolution those are.
@@ -396,23 +413,23 @@ static void parse_precedence(Ruja_Parser *parser, Ruja_Lexer *lexer, Precedence 
 
     while (precedence <= get_rule(parser->current.kind)->precedence) {
         advance(parser, lexer);
-        get_rule(parser->previous.kind)->infix(parser, lexer);
+        get_rule(parser->previous.kind)->infix(parser, lexer, ast);
     }
 }
 
-bool parse(Ruja_Parser *parser, Ruja_Lexer *lexer)
-{
+bool parse(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
     // quick start the parser
     advance(parser, lexer);
 
-    expression(parser, lexer);
+    // We know that the root of the AST will be an expression
+    (*ast)->type = AST_NODE_EXPRESSION;
+    expression(parser, lexer, &(*ast)->as.expr.expression);
     expect(parser, lexer, RUJA_TOK_EOF, "Expected end of file");
 
     return !parser->had_error;
 }
 
-Ruja_Parser *parser_new()
-{
+Ruja_Parser *parser_new() {
     Ruja_Parser *parser = malloc(sizeof(Ruja_Parser));
     if (parser == NULL) {
         fprintf(stderr, "Failed to allocate memory for parser\n");
@@ -425,7 +442,6 @@ Ruja_Parser *parser_new()
     return parser;
 }
 
-void parser_free(Ruja_Parser *parser)
-{
+void parser_free(Ruja_Parser *parser) {
     free(parser);
 }

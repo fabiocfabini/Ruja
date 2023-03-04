@@ -73,8 +73,8 @@ int main() {
 }
 #endif
 
-#if 0 // Parser test
-int main2(int argc, char** argv) {
+#if 1 // Parser test
+int main(int argc, char** argv) {
     if (argc < 2) {
         usage(); return 1;
     } else {
@@ -89,8 +89,13 @@ int main2(int argc, char** argv) {
                 if (lexer != NULL) {
                     Ruja_Parser* parser = parser_new();
                     if (parser != NULL) {
-                        parse(parser, lexer);
+                        Ruja_Ast ast = ast_new();
+                        if (ast != NULL) {
+                            parse(parser, lexer, &ast);
 
+                            ast_dot(ast, stdout);
+                            ast_free(ast);
+                        }
                         parser_free(parser);
                     }
                     lexer_free(lexer);
@@ -106,41 +111,29 @@ int main2(int argc, char** argv) {
 }
 #endif
 
-#if 1 // AST test
+#if 0 // AST test
 int main() {
-    Ruja_Ast ast = ast_new();
-
     // -(1 + 2 * 3)
 
-    // Create the root node
-    ast->type = AST_NODE_EXPRESSION;
-    ast->as.expr.expression = ast_new();
+    // Crete the numbers
+    Ruja_Ast number1 = ast_new_number(1);
+    Ruja_Ast number2 = ast_new_number(2);
+    Ruja_Ast number3 = ast_new_number(3);
 
-    // Create the unary node
-    ast->as.expr.expression->type = AST_NODE_UNARY_OP;
-    ast->as.expr.expression->as.unary_op.type = AST_UNARY_OP_NEG;
-    ast->as.expr.expression->as.unary_op.expression = ast_new();
+    // Create the multiplication
+    Ruja_Ast multiplication = ast_new_binary_op(AST_BINARY_OP_MUL, number1, number3);
 
-    // Create the left node
-    ast->as.expr.expression->as.unary_op.expression->type = AST_NODE_BINARY_OP;
-    ast->as.expr.expression->as.unary_op.expression->as.binary_op.type = AST_BINARY_OP_ADD;
-    ast->as.expr.expression->as.unary_op.expression->as.binary_op.left_expression = ast_new();
-    ast->as.expr.expression->as.unary_op.expression->as.binary_op.left_expression->type = AST_NODE_NUMBER;
-    ast->as.expr.expression->as.unary_op.expression->as.binary_op.left_expression->as.number.word = 1;
+    // Create the addition
+    Ruja_Ast addition = ast_new_binary_op(AST_BINARY_OP_ADD, number2, multiplication);
 
-    // Create the right node
-    ast->as.expr.expression->as.unary_op.expression->as.binary_op.right_expression = ast_new();
-    ast->as.expr.expression->as.unary_op.expression->as.binary_op.right_expression->type = AST_NODE_BINARY_OP;
-    ast->as.expr.expression->as.unary_op.expression->as.binary_op.right_expression->as.binary_op.type = AST_BINARY_OP_MUL;
-    ast->as.expr.expression->as.unary_op.expression->as.binary_op.right_expression->as.binary_op.left_expression = ast_new();
-    ast->as.expr.expression->as.unary_op.expression->as.binary_op.right_expression->as.binary_op.left_expression->type = AST_NODE_NUMBER;
-    ast->as.expr.expression->as.unary_op.expression->as.binary_op.right_expression->as.binary_op.left_expression->as.number.word = 2;
-    ast->as.expr.expression->as.unary_op.expression->as.binary_op.right_expression->as.binary_op.right_expression = ast_new();
-    ast->as.expr.expression->as.unary_op.expression->as.binary_op.right_expression->as.binary_op.right_expression->type = AST_NODE_NUMBER;
-    ast->as.expr.expression->as.unary_op.expression->as.binary_op.right_expression->as.binary_op.right_expression->as.number.word = 3;
+    // Create the negation
+    Ruja_Ast negation = ast_new_unary_op(AST_UNARY_OP_NEG, addition);
 
-    ast_dot(ast, stdout);
-    ast_free(ast);
+    // Create the Expression
+    Ruja_Ast expression = ast_new_expression(negation);
+
+    ast_dot(expression, stdout);
+    ast_free(expression);
     return 0;
 }
 #endif

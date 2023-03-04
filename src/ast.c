@@ -125,15 +125,15 @@ const char *ast_binary_op_type_to_string(ast_binary_op_type type) {
             return "or";
         case AST_BINARY_OP_EQ:
             return "==";
-        case AST_BINARY_OP_NEQ:
+        case AST_BINARY_OP_NE:
             return "!=";
         case AST_BINARY_OP_LT:
             return "<";
-        case AST_BINARY_OP_LTE:
+        case AST_BINARY_OP_LE:
             return "<=";
         case AST_BINARY_OP_GT:
             return ">";
-        case AST_BINARY_OP_GTE:
+        case AST_BINARY_OP_GE:
             return ">=";
         default:
             return "unknown";

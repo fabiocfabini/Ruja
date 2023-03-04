@@ -3,6 +3,7 @@
 
 #include "common.h"
 #include "lexer.h"
+#include "ast.h"
 
 
 typedef enum {
@@ -19,6 +20,6 @@ typedef struct {
 
 Ruja_Parser* parser_new();
 void parser_free(Ruja_Parser* parser);
-bool parse(Ruja_Parser* parser, Ruja_Lexer* lexer);
+bool parse(Ruja_Parser* parser, Ruja_Lexer* lexer, Ruja_Ast* ast);
 
 #endif // RUJA_PARSER_H
