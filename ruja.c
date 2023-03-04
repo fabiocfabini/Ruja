@@ -7,6 +7,7 @@
 #include "includes/bytecode.h"
 #include "includes/stack.h"
 #include "includes/vm.h"
+#include "includes/ast.h"
 
 void shift_agrs(int* argc, char*** argv) {
     (*argc)--;
@@ -33,7 +34,8 @@ void usage() {
     printf("  -v, --version\t\tPrint the version of Ruja.\n");
 }
 
-int mainx() {
+#if 0 // Stack test
+int main() {
     Stack* stack = stack_new();
 
 
@@ -48,7 +50,9 @@ int mainx() {
     stack_free(stack);
     return 0;
 }
+#endif
 
+#if 0 // Bytecode test
 int main() {
     Ruja_Vm* vm = vm_new();
 
@@ -66,9 +70,10 @@ int main() {
 
     vm_free(vm);
     return 0;
-
 }
+#endif
 
+#if 0 // Parser test
 int main2(int argc, char** argv) {
     if (argc < 2) {
         usage(); return 1;
@@ -99,3 +104,38 @@ int main2(int argc, char** argv) {
 
     return 0;
 }
+#endif
+
+#if 1 // AST test
+int main() {
+    Ruja_Ast ast = ast_new();
+
+    // 1 + 2 * 3
+
+    // Create the root node
+    ast->type = AST_NODE_EXPRESSION;
+    ast->as.expr.expression = ast_new();
+
+    // Create the left node
+    ast->as.expr.expression->type = AST_NODE_BINARY_OP;
+    ast->as.expr.expression->as.binary_op.type = AST_BINARY_OP_ADD;
+    ast->as.expr.expression->as.binary_op.left_expression = ast_new();
+    ast->as.expr.expression->as.binary_op.left_expression->type = AST_NODE_NUMBER;
+    ast->as.expr.expression->as.binary_op.left_expression->as.number.word = 1;
+
+    // Create the right node
+    ast->as.expr.expression->as.binary_op.right_expression = ast_new();
+    ast->as.expr.expression->as.binary_op.right_expression->type = AST_NODE_BINARY_OP;
+    ast->as.expr.expression->as.binary_op.right_expression->as.binary_op.type = AST_BINARY_OP_MUL;
+    ast->as.expr.expression->as.binary_op.right_expression->as.binary_op.left_expression = ast_new();
+    ast->as.expr.expression->as.binary_op.right_expression->as.binary_op.left_expression->type = AST_NODE_NUMBER;
+    ast->as.expr.expression->as.binary_op.right_expression->as.binary_op.left_expression->as.number.word = 2;
+    ast->as.expr.expression->as.binary_op.right_expression->as.binary_op.right_expression = ast_new();
+    ast->as.expr.expression->as.binary_op.right_expression->as.binary_op.right_expression->type = AST_NODE_NUMBER;
+    ast->as.expr.expression->as.binary_op.right_expression->as.binary_op.right_expression->as.number.word = 3;
+
+    ast_dot(ast, stdout);
+    ast_free(ast);
+    return 0;
+}
+#endif
