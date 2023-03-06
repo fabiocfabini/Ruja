@@ -34,7 +34,7 @@ void usage() {
     printf("  -v, --version\t\tPrint the version of Ruja.\n");
 }
 
-#if 1 // Stack test
+#if 0 // Stack test
 int main() {
     Stack* stack = stack_new();
 
@@ -65,15 +65,16 @@ int main() {
 int main() {
     Ruja_Vm* vm = vm_new();
 
-    size_t index1 = add_constant(vm->bytecode, MAKE_BOOL(42));
-    size_t index2 = add_constant(vm->bytecode, MAKE_BOOL(0));
+    size_t index1 = add_constant(vm->bytecode, MAKE_DOUBLE(0.0));
+    size_t index2 = add_constant(vm->bytecode, MAKE_DOUBLE(0));
     add_opcode(vm->bytecode, OP_CONST, 1);
     add_opcode(vm->bytecode, (uint8_t) index1, 1);
     add_opcode(vm->bytecode, OP_NOT, 1);
-    add_opcode(vm->bytecode, OP_NOT, 1);
+    add_opcode(vm->bytecode, OP_TRUE, 1);
+    add_opcode(vm->bytecode, OP_NIL, 1);
     add_opcode(vm->bytecode, OP_CONST, 1);
     add_opcode(vm->bytecode, (uint8_t) index2, 1);
-    add_opcode(vm->bytecode, OP_GT, 1);
+    add_opcode(vm->bytecode, OP_AND, 1);
     add_opcode(vm->bytecode, OP_HALT, 2);
 
     vm_run(vm);
@@ -83,7 +84,7 @@ int main() {
 }
 #endif
 
-#if 0 // Parser test
+#if 1 // Parser test
 int main(int argc, char** argv) {
     if (argc < 2) {
         usage(); return 1;
