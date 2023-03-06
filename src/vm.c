@@ -36,7 +36,7 @@ void vm_free(Ruja_Vm *vm) {
 }
 
 Ruja_Vm_Status vm_run(Ruja_Vm *vm) {
-    #if 0
+    #if 1
     disassemble(vm->bytecode, "VM RUN");
     #endif
 
@@ -48,7 +48,6 @@ Ruja_Vm_Status vm_run(Ruja_Vm *vm) {
 
         #if 1
 
-        printf("ip=%5"PRIu64" [%8s]", vm->ip, opcode_to_string(vm->bytecode->items[vm->ip]));
         stack_trace(vm->stack);
 
         #endif
@@ -63,80 +62,429 @@ Ruja_Vm_Status vm_run(Ruja_Vm *vm) {
                 return RUJA_VM_OK;
             }
             case OP_CONST: {
-                Word word = vm->bytecode->constant_words->items[vm->bytecode->items[vm->ip+1]];
-                stack_push(vm->stack, word);
+                stack_push(vm->stack, vm->bytecode->constant_words->items[vm->bytecode->items[vm->ip+1]]);
                 vm->ip += 2;
             } break;
             case OP_NEG: {
-                vm->stack->items[vm->stack->count-1] = -vm->stack->items[vm->stack->count-1];
+                Word word = vm->stack->items[vm->stack->count-1];
+                if (!IS_DOUBLE(word) && !IS_INT(word)) {
+                    fprintf(stderr, "Cannot negate non-numerical value at ip=%"PRIu64"\n", vm->ip);
+                    return RUJA_VM_ERROR;
+                }
+
+                if (IS_INT(word)) {
+                    vm->stack->items[vm->stack->count-1] = MAKE_INT(-AS_INT(word));
+                } else {
+                    vm->stack->items[vm->stack->count-1] = MAKE_DOUBLE(-(AS_DOUBLE(word)));
+                }
+
                 vm->ip++;
             } break;
             case OP_NOT: {
-                vm->stack->items[vm->stack->count-1] = !vm->stack->items[vm->stack->count-1];
+                if (!IS_BOOL(vm->stack->items[vm->stack->count-1])) {
+                    fprintf(stderr, "Cannot negate non-bool value at ip=%"PRIu64"\n", vm->ip);
+                    return RUJA_VM_ERROR;
+                }
+
+                Word word = vm->stack->items[vm->stack->count-1];
+                vm->stack->items[vm->stack->count-1] = MAKE_BOOL(!AS_BOOL(word));
+
                 vm->ip++;
             } break;
             case OP_ADD: {
-                vm->stack->items[vm->stack->count-2] += vm->stack->items[vm->stack->count-1];
+                if (vm->stack->count < 2) {
+                    fprintf(stderr, "Stack underflow at ip=%"PRIu64"\n", vm->ip);
+                    return RUJA_VM_ERROR;
+                }
+
+                Word word1 = vm->stack->items[vm->stack->count-2];
+                Word word2 = vm->stack->items[vm->stack->count-1];
+                if ((!IS_INT(word1) && !IS_DOUBLE(word1)) || (!IS_INT(word2) && !IS_DOUBLE(word2))) {
+                    fprintf(stderr, "Cannot add non-numerical values at ip=%"PRIu64"\n", vm->ip);
+                    return RUJA_VM_ERROR;
+                }
+
+                if (IS_INT(word1) && IS_INT(word2)) {
+                    vm->stack->items[vm->stack->count-2] = MAKE_INT(AS_INT(word1) + AS_INT(word2));
+                } else {
+                    vm->stack->items[vm->stack->count-2] = MAKE_DOUBLE(AS_DOUBLE(word1) + AS_DOUBLE(word2));
+                }
+
                 vm->stack->count--;
                 vm->ip++;
             } break;
             case OP_SUB: {
-                vm->stack->items[vm->stack->count-2] -= vm->stack->items[vm->stack->count-1];
+                if (vm->stack->count < 2) {
+                    fprintf(stderr, "Stack underflow at ip=%"PRIu64"\n", vm->ip);
+                    return RUJA_VM_ERROR;
+                }
+
+                Word word1 = vm->stack->items[vm->stack->count-2];
+                Word word2 = vm->stack->items[vm->stack->count-1];
+                if ((!IS_INT(word1) && !IS_DOUBLE(word1)) || (!IS_INT(word2) && !IS_DOUBLE(word2))) {
+                    fprintf(stderr, "Cannot subtract non-numerical values at ip=%"PRIu64"\n", vm->ip);
+                    return RUJA_VM_ERROR;
+                }
+
+                if (IS_INT(word1) && IS_INT(word2)) {
+                    vm->stack->items[vm->stack->count-2] = MAKE_INT(AS_INT(word1) - AS_INT(word2));
+                } else {
+                    vm->stack->items[vm->stack->count-2] = MAKE_DOUBLE(AS_DOUBLE(word1) - AS_DOUBLE(word2));
+                }
+
                 vm->stack->count--;
                 vm->ip++;
             } break;
             case OP_MUL: {
-                vm->stack->items[vm->stack->count-2] *= vm->stack->items[vm->stack->count-1];
+                if (vm->stack->count < 2) {
+                    fprintf(stderr, "Stack underflow at ip=%"PRIu64"\n", vm->ip);
+                    return RUJA_VM_ERROR;
+                }
+
+                Word word1 = vm->stack->items[vm->stack->count-2];
+                Word word2 = vm->stack->items[vm->stack->count-1];
+                if ((!IS_INT(word1) && !IS_DOUBLE(word1)) || (!IS_INT(word2) && !IS_DOUBLE(word2))) {
+                    fprintf(stderr, "Cannot multiply non-numerical values at ip=%"PRIu64"\n", vm->ip);
+                    return RUJA_VM_ERROR;
+                }
+
+                if (IS_INT(word1) && IS_INT(word2)) {
+                    vm->stack->items[vm->stack->count-2] = MAKE_INT(AS_INT(word1) * AS_INT(word2));
+                } else {
+                    vm->stack->items[vm->stack->count-2] = MAKE_DOUBLE(AS_DOUBLE(word1) * AS_DOUBLE(word2));
+                }
+
                 vm->stack->count--;
                 vm->ip++;
             } break;
             case OP_DIV: {
-                if (vm->stack->items[vm->stack->count-1] == 0) {
-                    fprintf(stderr, "Division by zero at ip=%"PRIu64"\n", vm->ip);
+                if (vm->stack->count < 2) {
+                    fprintf(stderr, "Stack underflow at ip=%"PRIu64"\n", vm->ip);
                     return RUJA_VM_ERROR;
                 }
 
-                vm->stack->items[vm->stack->count-2] /= vm->stack->items[vm->stack->count-1];
+                Word word1 = vm->stack->items[vm->stack->count-2];
+                Word word2 = vm->stack->items[vm->stack->count-1];
+                if ((!IS_INT(word1) && !IS_DOUBLE(word1)) || (!IS_INT(word2) && !IS_DOUBLE(word2))) {
+                    fprintf(stderr, "Cannot divide non-numerical values at ip=%"PRIu64"\n", vm->ip);
+                    return RUJA_VM_ERROR;
+                }
+
+                if (IS_INT(word2) && AS_INT(word2) == 0) {
+                    fprintf(stderr, "Cannot divide by zero at ip=%"PRIu64"\n", vm->ip);
+                    return RUJA_VM_ERROR;
+                }
+
+                if (IS_INT(word1) && IS_INT(word2)) {
+                    vm->stack->items[vm->stack->count-2] = MAKE_INT(AS_INT(word1) / AS_INT(word2));
+                } else {
+                    vm->stack->items[vm->stack->count-2] = MAKE_DOUBLE(AS_DOUBLE(word1) / AS_DOUBLE(word2));
+                }
+
                 vm->stack->count--;
                 vm->ip++;
             } break;
             case OP_EQ: {
-                vm->stack->items[vm->stack->count-2] = vm->stack->items[vm->stack->count-2] == vm->stack->items[vm->stack->count-1];
+                if (vm->stack->count < 2) {
+                    fprintf(stderr, "Stack underflow at ip=%"PRIu64"\n", vm->ip);
+                    return RUJA_VM_ERROR;
+                }
+
+                Word word1 = vm->stack->items[vm->stack->count-2];
+                Word word2 = vm->stack->items[vm->stack->count-1];
+
+                if ((word1 & MASK_TYPE) != (word2 & MASK_TYPE)) {
+                    fprintf(stderr, "Cannot compare values of different types at ip=%"PRIu64"\n", vm->ip);
+                    return RUJA_VM_ERROR;
+                }
+
+                switch (word1 & MASK_TYPE) {
+                    case TYPE_NAN: {
+                        vm->stack->items[vm->stack->count-2] = MAKE_BOOL(true);
+                    } break;
+                    case TYPE_NIL: {
+                        vm->stack->items[vm->stack->count-2] = MAKE_BOOL(true);
+                    } break;
+                    case TYPE_BOOL: {
+                        vm->stack->items[vm->stack->count-2] = MAKE_BOOL(AS_BOOL(word1) == AS_BOOL(word2));
+                    } break;
+                    case TYPE_CHAR: {
+                        vm->stack->items[vm->stack->count-2] = MAKE_BOOL(AS_CHAR(word1) == AS_CHAR(word2));
+                    } break;
+                    case TYPE_INT: {
+                        vm->stack->items[vm->stack->count-2] = MAKE_BOOL(AS_INT(word1) == AS_INT(word2));
+                    } break;
+                    default: {
+                        if (IS_DOUBLE(word1)) {
+                            vm->stack->items[vm->stack->count-2] = MAKE_BOOL(AS_DOUBLE(word1) == AS_DOUBLE(word2));
+                            break;
+                        } else {
+                            fprintf(stderr, "Cannot compare values of different type at ip=%"PRIu64"\n", vm->ip);
+                            return RUJA_VM_ERROR;
+                        }
+                    }
+                }
+
                 vm->stack->count--;
                 vm->ip++;
             } break;
             case OP_NEQ: {
-                vm->stack->items[vm->stack->count-2] = vm->stack->items[vm->stack->count-2] != vm->stack->items[vm->stack->count-1];
+                if (vm->stack->count < 2) {
+                    fprintf(stderr, "Stack underflow at ip=%"PRIu64"\n", vm->ip);
+                    return RUJA_VM_ERROR;
+                }
+
+                Word word1 = vm->stack->items[vm->stack->count-2];
+                Word word2 = vm->stack->items[vm->stack->count-1];
+
+                if ((word1 & MASK_TYPE) != (word2 & MASK_TYPE)) {
+                    fprintf(stderr, "Cannot compare values of different types at ip=%"PRIu64"\n", vm->ip);
+                    return RUJA_VM_ERROR;
+                }
+
+                switch (word1 & MASK_TYPE) {
+                    case TYPE_NAN: {
+                        vm->stack->items[vm->stack->count-2] = MAKE_BOOL(true);
+                    } break;
+                    case TYPE_NIL: {
+                        vm->stack->items[vm->stack->count-2] = MAKE_BOOL(true);
+                    } break;
+                    case TYPE_BOOL: {
+                        vm->stack->items[vm->stack->count-2] = MAKE_BOOL(AS_BOOL(word1) != AS_BOOL(word2));
+                    } break;
+                    case TYPE_CHAR: {
+                        vm->stack->items[vm->stack->count-2] = MAKE_BOOL(AS_CHAR(word1) != AS_CHAR(word2));
+                    } break;
+                    case TYPE_INT: {
+                        vm->stack->items[vm->stack->count-2] = MAKE_BOOL(AS_INT(word1) != AS_INT(word2));
+                    } break;
+                    default: {
+                        if (IS_DOUBLE(word1)) {
+                            vm->stack->items[vm->stack->count-2] = MAKE_BOOL(AS_DOUBLE(word1) != AS_DOUBLE(word2));
+                            break;
+                        } else {
+                            fprintf(stderr, "Cannot compare values of different type at ip=%"PRIu64"\n", vm->ip);
+                            return RUJA_VM_ERROR;
+                        }
+                    }
+                }
+
                 vm->stack->count--;
                 vm->ip++;
             } break;
             case OP_LT: {
-                vm->stack->items[vm->stack->count-2] = vm->stack->items[vm->stack->count-2] < vm->stack->items[vm->stack->count-1];
+                if (vm->stack->count < 2) {
+                    fprintf(stderr, "Stack underflow at ip=%"PRIu64"\n", vm->ip);
+                    return RUJA_VM_ERROR;
+                }
+
+                Word word1 = vm->stack->items[vm->stack->count-2];
+                Word word2 = vm->stack->items[vm->stack->count-1];
+
+                if ((word1 & MASK_TYPE) != (word2 & MASK_TYPE)) {
+                    fprintf(stderr, "Cannot compare values of different types at ip=%"PRIu64"\n", vm->ip);
+                    return RUJA_VM_ERROR;
+                }
+
+                switch (word1 & MASK_TYPE) {
+                    case TYPE_NAN: {
+                        vm->stack->items[vm->stack->count-2] = MAKE_BOOL(true);
+                    } break;
+                    case TYPE_NIL: {
+                        vm->stack->items[vm->stack->count-2] = MAKE_BOOL(true);
+                    } break;
+                    case TYPE_BOOL: {
+                        fprintf(stderr, "Cannot compare boolean values with '<' operator at ip=%"PRIu64"\n", vm->ip);
+                        return RUJA_VM_ERROR;
+                    } break;
+                    case TYPE_CHAR: {
+                        vm->stack->items[vm->stack->count-2] = MAKE_BOOL(AS_CHAR(word1) < AS_CHAR(word2));
+                    } break;
+                    case TYPE_INT: {
+                        vm->stack->items[vm->stack->count-2] = MAKE_BOOL(AS_INT(word1) < AS_INT(word2));
+                    } break;
+                    default: {
+                        if (IS_DOUBLE(word1)) {
+                            vm->stack->items[vm->stack->count-2] = MAKE_BOOL(AS_DOUBLE(word1) < AS_DOUBLE(word2));
+                            break;
+                        } else {
+                            fprintf(stderr, "Cannot compare values of different type at ip=%"PRIu64"\n", vm->ip);
+                            return RUJA_VM_ERROR;
+                        }
+                    }
+                }
+
                 vm->stack->count--;
                 vm->ip++;
             } break;
             case OP_LTE: {
-                vm->stack->items[vm->stack->count-2] = vm->stack->items[vm->stack->count-2] <= vm->stack->items[vm->stack->count-1];
+                if (vm->stack->count < 2) {
+                    fprintf(stderr, "Stack underflow at ip=%"PRIu64"\n", vm->ip);
+                    return RUJA_VM_ERROR;
+                }
+
+                Word word1 = vm->stack->items[vm->stack->count-2];
+                Word word2 = vm->stack->items[vm->stack->count-1];
+
+                if ((word1 & MASK_TYPE) != (word2 & MASK_TYPE)) {
+                    fprintf(stderr, "Cannot compare values of different types at ip=%"PRIu64"\n", vm->ip);
+                    return RUJA_VM_ERROR;
+                }
+
+                switch (word1 & MASK_TYPE) {
+                    case TYPE_NAN: {
+                        vm->stack->items[vm->stack->count-2] = MAKE_BOOL(true);
+                    } break;
+                    case TYPE_NIL: {
+                        vm->stack->items[vm->stack->count-2] = MAKE_BOOL(true);
+                    } break;
+                    case TYPE_BOOL: {
+                        fprintf(stderr, "Cannot compare boolean values with '<=' operator at ip=%"PRIu64"\n", vm->ip);
+                        return RUJA_VM_ERROR;
+                    } break;
+                    case TYPE_CHAR: {
+                        vm->stack->items[vm->stack->count-2] = MAKE_BOOL(AS_CHAR(word1) <= AS_CHAR(word2));
+                    } break;
+                    case TYPE_INT: {
+                        vm->stack->items[vm->stack->count-2] = MAKE_BOOL(AS_INT(word1) <= AS_INT(word2));
+                    } break;
+                    default: {
+                        if (IS_DOUBLE(word1)) {
+                            vm->stack->items[vm->stack->count-2] = MAKE_BOOL(AS_DOUBLE(word1) <= AS_DOUBLE(word2));
+                            break;
+                        } else {
+                            fprintf(stderr, "Cannot compare values of different type at ip=%"PRIu64"\n", vm->ip);
+                            return RUJA_VM_ERROR;
+                        }
+                    }
+                }
+
                 vm->stack->count--;
                 vm->ip++;
             } break;
             case OP_GT: {
-                vm->stack->items[vm->stack->count-2] = vm->stack->items[vm->stack->count-2] > vm->stack->items[vm->stack->count-1];
+                if (vm->stack->count < 2) {
+                    fprintf(stderr, "Stack underflow at ip=%"PRIu64"\n", vm->ip);
+                    return RUJA_VM_ERROR;
+                }
+
+                Word word1 = vm->stack->items[vm->stack->count-2];
+                Word word2 = vm->stack->items[vm->stack->count-1];
+
+                if ((word1 & MASK_TYPE) != (word2 & MASK_TYPE)) {
+                    fprintf(stderr, "Cannot compare values of different types at ip=%"PRIu64"\n", vm->ip);
+                    return RUJA_VM_ERROR;
+                }
+
+                switch (word1 & MASK_TYPE) {
+                    case TYPE_NAN: {
+                        vm->stack->items[vm->stack->count-2] = MAKE_BOOL(true);
+                    } break;
+                    case TYPE_NIL: {
+                        vm->stack->items[vm->stack->count-2] = MAKE_BOOL(true);
+                    } break;
+                    case TYPE_BOOL: {
+                        fprintf(stderr, "Cannot compare boolean values with '>' operator at ip=%"PRIu64"\n", vm->ip);
+                        return RUJA_VM_ERROR;
+                    } break;
+                    case TYPE_CHAR: {
+                        vm->stack->items[vm->stack->count-2] = MAKE_BOOL(AS_CHAR(word1) > AS_CHAR(word2));
+                    } break;
+                    case TYPE_INT: {
+                        vm->stack->items[vm->stack->count-2] = MAKE_BOOL(AS_INT(word1) > AS_INT(word2));
+                    } break;
+                    default: {
+                        if (IS_DOUBLE(word1)) {
+                            vm->stack->items[vm->stack->count-2] = MAKE_BOOL(AS_DOUBLE(word1) > AS_DOUBLE(word2));
+                            break;
+                        } else {
+                            fprintf(stderr, "Cannot compare values of different type at ip=%"PRIu64"\n", vm->ip);
+                            return RUJA_VM_ERROR;
+                        }
+                    }
+                }
+
                 vm->stack->count--;
                 vm->ip++;
             } break;
             case OP_GTE: {
-                vm->stack->items[vm->stack->count-2] = vm->stack->items[vm->stack->count-2] >= vm->stack->items[vm->stack->count-1];
+                if (vm->stack->count < 2) {
+                    fprintf(stderr, "Stack underflow at ip=%"PRIu64"\n", vm->ip);
+                    return RUJA_VM_ERROR;
+                }
+
+                Word word1 = vm->stack->items[vm->stack->count-2];
+                Word word2 = vm->stack->items[vm->stack->count-1];
+
+                if ((word1 & MASK_TYPE) != (word2 & MASK_TYPE)) {
+                    fprintf(stderr, "Cannot compare values of different types at ip=%"PRIu64"\n", vm->ip);
+                    return RUJA_VM_ERROR;
+                }
+
+                switch (word1 & MASK_TYPE) {
+                    case TYPE_NAN: {
+                        vm->stack->items[vm->stack->count-2] = MAKE_BOOL(true);
+                    } break;
+                    case TYPE_NIL: {
+                        vm->stack->items[vm->stack->count-2] = MAKE_BOOL(true);
+                    } break;
+                    case TYPE_BOOL: {
+                        fprintf(stderr, "Cannot compare boolean values with '>=' operator at ip=%"PRIu64"\n", vm->ip);
+                        return RUJA_VM_ERROR;
+                    } break;
+                    case TYPE_CHAR: {
+                        vm->stack->items[vm->stack->count-2] = MAKE_BOOL(AS_CHAR(word1) >= AS_CHAR(word2));
+                    } break;
+                    case TYPE_INT: {
+                        vm->stack->items[vm->stack->count-2] = MAKE_BOOL(AS_INT(word1) >= AS_INT(word2));
+                    } break;
+                    default: {
+                        if (IS_DOUBLE(word1)) {
+                            vm->stack->items[vm->stack->count-2] = MAKE_BOOL(AS_DOUBLE(word1) >= AS_DOUBLE(word2));
+                            break;
+                        } else {
+                            fprintf(stderr, "Cannot compare values of different type at ip=%"PRIu64"\n", vm->ip);
+                            return RUJA_VM_ERROR;
+                        }
+                    }
+                }
+
                 vm->stack->count--;
                 vm->ip++;
             } break;
             case OP_AND: {
-                vm->stack->items[vm->stack->count-2] = vm->stack->items[vm->stack->count-2] && vm->stack->items[vm->stack->count-1];
+                if (vm->stack->count < 2) {
+                    fprintf(stderr, "Stack underflow at ip=%"PRIu64"\n", vm->ip);
+                    return RUJA_VM_ERROR;
+                }
+
+                Word word1 = vm->stack->items[vm->stack->count-2];
+                Word word2 = vm->stack->items[vm->stack->count-1];
+                if (!IS_BOOL(word2) && !IS_BOOL(word1)) {
+                    fprintf(stderr, "Cannot perform logical AND on non-boolean values at ip=%"PRIu64"\n", vm->ip);
+                    return RUJA_VM_ERROR;
+                }
+
+                vm->stack->items[vm->stack->count-2] = MAKE_BOOL(AS_BOOL(word1) && AS_BOOL(word2));
+
                 vm->stack->count--;
                 vm->ip++;
             } break;
             case OP_OR: {
-                vm->stack->items[vm->stack->count-2] = vm->stack->items[vm->stack->count-2] || vm->stack->items[vm->stack->count-1];
+                if (vm->stack->count < 2) {
+                    fprintf(stderr, "Stack underflow at ip=%"PRIu64"\n", vm->ip);
+                    return RUJA_VM_ERROR;
+                }
+
+                Word word1 = vm->stack->items[vm->stack->count-2];
+                Word word2 = vm->stack->items[vm->stack->count-1];
+                if (!IS_BOOL(word2) && !IS_BOOL(word1)) {
+                    fprintf(stderr, "Cannot perform logical OR on non-boolean values at ip=%"PRIu64"\n", vm->ip);
+                    return RUJA_VM_ERROR;
+                }
+
+                vm->stack->items[vm->stack->count-2] = MAKE_BOOL(AS_BOOL(word1) || AS_BOOL(word2));
+
                 vm->stack->count--;
                 vm->ip++;
             } break;

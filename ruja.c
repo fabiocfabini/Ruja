@@ -34,20 +34,29 @@ void usage() {
     printf("  -v, --version\t\tPrint the version of Ruja.\n");
 }
 
-#if 0 // Stack test
+#if 1 // Stack test
 int main() {
     Stack* stack = stack_new();
 
 
     stack_trace(stack);
-    stack_push(stack, 1.1);
-    stack_push(stack, 1.2);
-    stack_push(stack, 1.3);
-    stack_push(stack, 1.4);
-    stack_push(stack, 1.5);
+    stack_push(stack, MAKE_DOUBLE(-3.14));
+    stack_push(stack, MAKE_INT(-12));
+    stack_push(stack, MAKE_BOOL(1));
+    stack_push(stack, MAKE_CHAR('a'));
+    stack_push(stack, MAKE_NIL());
     stack_trace(stack);
 
     stack_free(stack);
+    return 0;
+}
+#endif
+
+#if 0 // Nan Box test
+int main() {
+    Word w = MAKE_INT(-1);
+    print_word(w, 0);
+    printf("\n");
     return 0;
 }
 #endif
@@ -56,14 +65,15 @@ int main() {
 int main() {
     Ruja_Vm* vm = vm_new();
 
-    size_t index1 = add_constant(vm->bytecode, 1);
-    size_t index2 = add_constant(vm->bytecode, 0);
+    size_t index1 = add_constant(vm->bytecode, MAKE_BOOL(42));
+    size_t index2 = add_constant(vm->bytecode, MAKE_BOOL(0));
     add_opcode(vm->bytecode, OP_CONST, 1);
     add_opcode(vm->bytecode, (uint8_t) index1, 1);
-    add_opcode(vm->bytecode, OP_NEG, 1);
+    add_opcode(vm->bytecode, OP_NOT, 1);
+    add_opcode(vm->bytecode, OP_NOT, 1);
     add_opcode(vm->bytecode, OP_CONST, 1);
     add_opcode(vm->bytecode, (uint8_t) index2, 1);
-    add_opcode(vm->bytecode, OP_LT, 1);
+    add_opcode(vm->bytecode, OP_GT, 1);
     add_opcode(vm->bytecode, OP_HALT, 2);
 
     vm_run(vm);
@@ -73,7 +83,7 @@ int main() {
 }
 #endif
 
-#if 1 // Parser test
+#if 0 // Parser test
 int main(int argc, char** argv) {
     if (argc < 2) {
         usage(); return 1;
@@ -91,9 +101,10 @@ int main(int argc, char** argv) {
                     if (parser != NULL) {
                         Ruja_Ast ast = ast_new();
                         if (ast != NULL) {
-                            parse(parser, lexer, &ast);
+                            if (parse(parser, lexer, &ast)) {
+                                ast_dot(ast, stdout);
+                            }
 
-                            ast_dot(ast, stdout);
                             ast_free(ast);
                         }
                         parser_free(parser);
@@ -116,9 +127,9 @@ int main() {
     // -(1 + 2 * 3)
 
     // Crete the numbers
-    Ruja_Ast number1 = ast_new_number(1);
-    Ruja_Ast number2 = ast_new_number(2);
-    Ruja_Ast number3 = ast_new_number(3);
+    Ruja_Ast number1 = ast_new_literal(MAKE_DOUBLE(1));
+    Ruja_Ast number2 = ast_new_literal(MAKE_DOUBLE(2));
+    Ruja_Ast number3 = ast_new_literal(MAKE_DOUBLE(3));
 
     // Create the multiplication
     Ruja_Ast multiplication = ast_new_binary_op(AST_BINARY_OP_MUL, number1, number3);

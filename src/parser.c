@@ -100,6 +100,7 @@ static void unary(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
 static void integer(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
 static void floating(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
 static void character(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
+static void boolean(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
 static void string(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
 static void identifier(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
 static void grouping(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
@@ -148,8 +149,8 @@ static Parse_Rule rules[] = {
     [RUJA_TOK_RETURN]     = {NULL, NULL, PREC_NONE},
     [RUJA_TOK_STRUCT]     = {NULL, NULL, PREC_NONE},
     [RUJA_TOK_ENUM]       = {NULL, NULL, PREC_NONE},
-    [RUJA_TOK_TRUE]       = {NULL, NULL, PREC_NONE},
-    [RUJA_TOK_FALSE]      = {NULL, NULL, PREC_NONE},
+    [RUJA_TOK_TRUE]       = {boolean, NULL, PREC_NONE},
+    [RUJA_TOK_FALSE]      = {boolean, NULL, PREC_NONE},
     [RUJA_TOK_LET]        = {NULL, NULL, PREC_NONE},
     [RUJA_TOK_ID]         = {identifier, NULL, PREC_NONE},
     [RUJA_TOK_TYPE_I8]    = {NULL, NULL, PREC_NONE},
@@ -169,39 +170,46 @@ static Parse_Rule *get_rule(Ruja_Token_Kind kind) {
     return kind >= 0 ? &rules[kind]: &rules[0]; // Rule 0 has all NULL pointers it can act as a default
 }
 
+static void boolean(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
+    Word boolean = MAKE_BOOL(parser->previous.start[0] == 't');
+    (*ast) = ast_new_literal(boolean);
+}
+
 /**
- * @brief Parser a Token of kind RUJA_TOK_INT
+ * @brief Parse a Token of kind RUJA_TOK_INT
  * 
  * @param parser The Parser in use
  * @param lexer The Lexer is use
  */
 static void integer(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
-    Word integer = strtod(parser->previous.start, NULL);
-    (*ast) = ast_new_number(integer);
+    Word integer = MAKE_INT(strtod(parser->previous.start, NULL));
+    (*ast) = ast_new_literal(integer);
 }
 
 /**
- * @brief Parser a Token of kind RUJA_TOK_FLOAT
+ * @brief Parse a Token of kind RUJA_TOK_FLOAT 
  * 
  * @param parser The Parser in use
  * @param lexer The Lexer is use
  */
 static void floating(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
-    NOT_IMPLEMENTED("Floating point parsing", __FILE__, __LINE__);
+    Word floating = MAKE_DOUBLE(strtod(parser->previous.start, NULL));
+    (*ast) = ast_new_literal(floating);
 }
 
 /**
- * @brief Parser a Token of kind RUJA_TOK_CHAR
+ * @brief Parse a Token of kind RUJA_TOK_CHAR
  * 
  * @param parser The Parser in use
  * @param lexer The Lexer is use
  */
 static void character(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
-    NOT_IMPLEMENTED("Character parsing", __FILE__, __LINE__);
+    Word character = MAKE_CHAR(parser->previous.start[0]);
+    (*ast) = ast_new_literal(character);
 }
 
 /**
- * @brief Parser a Token of kind RUJA_TOK_STRING
+ * @brief Parse a Token of kind RUJA_TOK_STRING
  * 
  * @param parser The Parser in use
  * @param lexer The Lexer is use
@@ -211,7 +219,7 @@ static void string(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
 }
 
 /**
- * @brief Parser a Token of kind RUJA_TOK_ID
+ * @brief Parse a Token of kind RUJA_TOK_ID
  * 
  * @param parser The Parser in use
  * @param lexer The Lexer is use
@@ -280,8 +288,8 @@ static ast_binary_op_type token_binary_to_ast_binary(Ruja_Token_Kind kind) {
  * @param lexer The lexer in use
  */
 static void unary(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
-    assert((parser->previous.kind == RUJA_TOK_NOT || parser->previous.kind == RUJA_TOK_SUB) &&
-            "This function assumes that a unary token has been already consumed.");
+    // assert((parser->previous.kind == RUJA_TOK_NOT || parser->previous.kind == RUJA_TOK_SUB) &&
+    //         "This function assumes that a unary token has been already consumed.");
 
     // Save the previous unary operation
     Ruja_Token unary_op = parser->previous;
@@ -300,13 +308,13 @@ static void unary(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
  * @param lexer The lexer in use
  */
 static void binary(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
-    assert((parser->previous.kind == RUJA_TOK_SUB || parser->previous.kind == RUJA_TOK_ADD ||
-            parser->previous.kind == RUJA_TOK_DIV || parser->previous.kind == RUJA_TOK_MUL ||
-            parser->previous.kind == RUJA_TOK_AND || parser->previous.kind == RUJA_TOK_OR  ||
-            parser->previous.kind == RUJA_TOK_EQ  || parser->previous.kind == RUJA_TOK_NE  ||
-            parser->previous.kind == RUJA_TOK_GT  || parser->previous.kind == RUJA_TOK_LT  ||
-            parser->previous.kind == RUJA_TOK_GE  || parser->previous.kind == RUJA_TOK_LE) &&
-            "This function assumes that a binary token has been already consumed.");
+    // assert((parser->previous.kind == RUJA_TOK_SUB || parser->previous.kind == RUJA_TOK_ADD ||
+    //         parser->previous.kind == RUJA_TOK_DIV || parser->previous.kind == RUJA_TOK_MUL ||
+    //         parser->previous.kind == RUJA_TOK_AND || parser->previous.kind == RUJA_TOK_OR  ||
+    //         parser->previous.kind == RUJA_TOK_EQ  || parser->previous.kind == RUJA_TOK_NE  ||
+    //         parser->previous.kind == RUJA_TOK_GT  || parser->previous.kind == RUJA_TOK_LT  ||
+    //         parser->previous.kind == RUJA_TOK_GE  || parser->previous.kind == RUJA_TOK_LE) &&
+    //         "This function assumes that a binary token has been already consumed.");
 
     // Save the current binary operation
     Ruja_Token binary_op = parser->previous;
@@ -329,17 +337,17 @@ static void binary(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
 static void ternary(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
     // At this point the ast is the expression branch of the AST_NODE_EXPRESSION node
     // this needs to be changed to the condition branch of the AST_NODE_TERNARY node
-    assert( parser->previous.kind == RUJA_TOK_QUESTION &&
-            "This function assumes that a ternary token has been already consumed.");
+    // assert( parser->previous.kind == RUJA_TOK_QUESTION &&
+    //         "This function assumes that a ternary token has been already consumed.");
 
     Ruja_Ast ternary = ast_new_ternary_op(*ast, NULL, NULL);
 
     expression(parser, lexer, &ternary->as.ternary_op.true_expression);
 
-    assert( parser->current.kind == RUJA_TOK_COLON &&
-            "This function assumes that a ternary token has been already consumed.");
+    // assert( parser->current.kind == RUJA_TOK_COLON &&
+    //         "This function assumes that a ternary token has been already consumed.");
+    expect(parser, lexer, RUJA_TOK_COLON, "Expected ':' after ternary operator '?'");
 
-    advance(parser, lexer);
     expression(parser, lexer, &ternary->as.ternary_op.false_expression);
 
     (*ast) = ternary;
@@ -420,6 +428,7 @@ static void parse_precedence(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* a
 bool parse(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
     // quick start the parser
     advance(parser, lexer);
+    if (parser->had_error) return false;
 
     // We know that the root of the AST will be an expression
     (*ast)->type = AST_NODE_EXPRESSION;

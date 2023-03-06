@@ -69,7 +69,12 @@ static void disassemble_instruction(Bytecode* bytecode, size_t* index) {
         case OP_GTE:   printf("%14s |%14s |", "GTE", "-----"); break;
         case OP_AND:   printf("%14s |%14s |", "AND", "-----"); break;
         case OP_OR:    printf("%14s |%14s |", "OR", "-----"); break;
-        case OP_CONST: printf("%14s |%14lf |", "CONST", bytecode->constant_words->items[bytecode->items[++(*index)]]); break;
+        case OP_CONST: {
+            // printf("%14s |%14lf |", "CONST", bytecode->constant_words->items[bytecode->items[++(*index)]]); break;
+            printf("%14s |", "CONST");
+            print_word(stdout, bytecode->constant_words->items[bytecode->items[++(*index)]], 14);
+            printf(" |");
+        }
     }
 }
 

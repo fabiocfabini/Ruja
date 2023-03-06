@@ -442,6 +442,27 @@ Ruja_Token next_token(Ruja_Lexer *lexer) {
                 default  : { err_lexer(lexer, &result, "Unrecognized token"); } break;
             }
         } break;
+        case '\'': {
+            advance(lexer);
+            result.kind = RUJA_TOK_CHAR;
+            result.start = lexer->current;
+            size_t len = 0;
+            while (peek(lexer) != '\'' && peek(lexer) != '\0') {
+                if (peek(lexer) == '\n') lexer->line++;
+                advance(lexer);
+                len++;
+            }
+            result.length = lexer->current - result.start;
+            if (peek(lexer) == '\0') err_lexer(lexer, &result, "Unterminated character");
+            else if (len > 1) {
+                err_lexer(lexer, &result, "Character literal too long");
+                while (len + 1 > 1) {
+                    advance(lexer);
+                    len--;
+                }
+            }
+            else advance(lexer);
+        } break;
         case '"': {
             advance(lexer);
             result.kind = RUJA_TOK_STRING;
@@ -455,7 +476,7 @@ Ruja_Token next_token(Ruja_Lexer *lexer) {
             else advance(lexer);
         } break;
         case '\0': { result.kind = RUJA_TOK_EOF; result.length = 0; } break;
-        default: { err_lexer(lexer, &result, "Unrecognized token"); } break;
+        default: { err_lexer(lexer, &result, "Unrecognized token"); advance(lexer);} break;
     }
 
     rebase(lexer);

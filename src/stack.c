@@ -33,9 +33,10 @@ void stack_push(Stack* stack, Word word) {
 }
 
 void stack_trace(Stack *stack) {
-    printf("%10s: [ ", "STACK");
+    printf("STACK: [ ");
     for (size_t i = 0; i < stack->count; i++) {
-        printf("%4.2lf ", stack->items[i]);
+        print_word(stdout, stack->items[i], 0);
+        printf(" ");
     }
-    printf(" ]\n");
+    printf("]\n");
 }

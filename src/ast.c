@@ -21,7 +21,7 @@ void ast_free(Ruja_Ast ast) {
     switch (ast->type) {
         case AST_NODE_EMPTY:
             break;
-        case AST_NODE_NUMBER:
+        case AST_NODE_LITERAL:
             break;
         case AST_NODE_UNARY_OP:
             ast_free(ast->as.unary_op.expression);
@@ -43,12 +43,12 @@ void ast_free(Ruja_Ast ast) {
     free(ast);
 }
 
-Ruja_Ast ast_new_number(Word word) {
+Ruja_Ast ast_new_literal(Word word) {
     Ruja_Ast ast = ast_new();
     if (ast == NULL) return NULL;
 
-    ast->type = AST_NODE_NUMBER;
-    ast->as.number.word = word;
+    ast->type = AST_NODE_LITERAL;
+    ast->as.literal.value = word;
 
     return ast;
 }
@@ -149,7 +149,9 @@ static void dot_node(FILE* file, size_t id, const char* label, const char* color
 }
 
 static void dot_node_word(FILE* file, size_t id, Word word, const char* color, const char* style) {
-    fprintf(file, "    %zu [label=\"%lf\", fillcolor=\"%s\", style=\"%s\"];\n", id, word, color?color:"black", style?style:"");
+    fprintf(file, "    %zu [label=\"", id);
+    print_word(file, word, 0);
+    fprintf(file, "\", fillcolor=\"%s\", style=\"%s\"];\n", color?color:"black", style?style:"");
 }
 
 static void dot_arrow(FILE* file, size_t from, size_t to, const char* label) {
@@ -173,10 +175,10 @@ static void ast_dot_internal(Ruja_Ast ast, FILE* file, size_t* id) {
         case AST_NODE_EMPTY:
             dot_node(file, root_id, "Empty", DARK_RED, "filled");
             break;
-        case AST_NODE_NUMBER:
-            dot_node(file, root_id, "Number", EXPRESSION_COLOR, "filled");
-            dot_arrow(file, root_id, increment(id), "word");
-            dot_node_word(file, *id, ast->as.number.word, LITERAL_COLOR, "filled");
+        case AST_NODE_LITERAL:
+            dot_node(file, root_id, "Literal", EXPRESSION_COLOR, "filled");
+            dot_arrow(file, root_id, increment(id), "value");
+            dot_node_word(file, *id, ast->as.literal.value, LITERAL_COLOR, "filled");
             break;
         case AST_NODE_UNARY_OP:
             dot_node(file, root_id, "UnaryOp", EXPRESSION_COLOR, "filled");
