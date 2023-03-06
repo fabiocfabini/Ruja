@@ -288,6 +288,12 @@ static char* token_kind_to_string(Ruja_Token_Kind kind) {
     }
 }
 
+/**
+ * @brief Reads the source code from a file and returns it as a string.
+ * 
+ * @param filepath The path to the file to read. 
+ * @return char* The source code as a string. NULL if an error occurred.
+ */
 static char* read_file(const char* filepath){
     #define READ_ERROR(condition, msg) \
         if (condition) { \
@@ -322,6 +328,13 @@ static char* read_file(const char* filepath){
     return buffer;
 }
 
+/**
+ * @brief Reports a lexer error.
+ * 
+ * @param lexer The lexer that encountered the error.
+ * @param token The token that caused the error.
+ * @param msg The error message.
+ */
 static void err_lexer(Ruja_Lexer *lexer, Ruja_Token* token, const char* msg) {
     fprintf(stderr, "%s:%"PRIu64": "RED"lex error"RESET" %s '%.*s'.\n", lexer->source, token->line, msg, (int) token->length, token->start);
     token->kind = RUJA_TOK_ERR;

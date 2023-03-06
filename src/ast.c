@@ -98,6 +98,12 @@ Ruja_Ast ast_new_expression(Ruja_Ast expression) {
     return ast;
 }
 
+/**
+ * @brief Convert an ast_unary_op_type to a string
+ * 
+ * @param type 
+ * @return const char* 
+ */
 const char *ast_unary_op_type_to_string(ast_unary_op_type type) {
     switch (type) {
         case AST_UNARY_OP_NOT:
@@ -109,6 +115,12 @@ const char *ast_unary_op_type_to_string(ast_unary_op_type type) {
     }
 }
 
+/**
+ * @brief Convert an ast_binary_op_type to a string
+ * 
+ * @param type 
+ * @return const char* 
+ */
 const char *ast_binary_op_type_to_string(ast_binary_op_type type) {
     switch (type) {
         case AST_BINARY_OP_ADD:
@@ -140,24 +152,63 @@ const char *ast_binary_op_type_to_string(ast_binary_op_type type) {
     }
 }
 
+/**
+ * @brief Increment an id and return the new value 
+ * 
+ * 
+ * @param type 
+ * @return size_t The new value of the id
+ */
 static size_t increment(size_t* id) {
     return ++(*id);
 }
 
+/**
+ * @brief Print an ast node to a file in dot format
+ * 
+ * @param file The file pointer
+ * @param id The id of the node
+ * @param label The label of the node
+ * @param color The color of the node
+ * @param style The style of the node
+ */
 static void dot_node(FILE* file, size_t id, const char* label, const char* color, const char* style) {
     fprintf(file, "    %zu [label=\"%s\", fillcolor=\"%s\", style=\"%s\"];\n", id, label, color?color:"black", style?style:"");
 }
 
+/**
+ * @brief Print an ast word node to a file in dot format
+ * 
+ * @param file The file pointer
+ * @param id The id of the node
+ * @param word The word of the node
+ * @param color The color of the node
+ * @param style The style of the node
+ */
 static void dot_node_word(FILE* file, size_t id, Word word, const char* color, const char* style) {
     fprintf(file, "    %zu [label=\"", id);
     print_word(file, word, 0);
     fprintf(file, "\", fillcolor=\"%s\", style=\"%s\"];\n", color?color:"black", style?style:"");
 }
 
+/**
+ * @brief Print an ast arrow to a file in dot format
+ * 
+ * @param file The file pointer
+ * @param from The id of the node the arrow is coming from
+ * @param to The id of the node the arrow is going to
+ * @param label The label of the arrow
+ */
 static void dot_arrow(FILE* file, size_t from, size_t to, const char* label) {
     fprintf(file, "    %zu -> %zu [label=\"%s\"];\n", from, to, label);
 }
 
+/**
+ * @brief Internal recursive function to print an ast to a file in dot format
+ * 
+ * @param ast The ast to print
+ * @param file The file pointer
+ */
 static void ast_dot_internal(Ruja_Ast ast, FILE* file, size_t* id) {
 // Dark colors
 #define DARK_BLUE "#0000CC"

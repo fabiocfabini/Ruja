@@ -172,11 +172,23 @@ static Parse_Rule *get_rule(Ruja_Token_Kind kind) {
     return kind >= 0 ? &rules[kind]: &rules[0]; // Rule 0 has all NULL pointers it can act as a default
 }
 
+/**
+ * @brief Parse a Token of kind RUJA_TOK_NIL
+ * 
+ * @param parser The Parser in use
+ * @param lexer The Lexer is use
+ */
 static void nil(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
     Word nil = MAKE_NIL();
     (*ast) = ast_new_literal(nil);
 }
 
+/**
+ * @brief Parse a Token of kind RUJA_TOK_TRUE or RUJA_TOK_FALSE
+ * 
+ * @param parser The Parser in use
+ * @param lexer The Lexer is use
+ */
 static void boolean(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
     Word boolean = MAKE_BOOL(parser->previous.start[0] == 't');
     (*ast) = ast_new_literal(boolean);

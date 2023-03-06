@@ -50,6 +50,12 @@ void add_opcode(Bytecode* bytecode, uint8_t byte, size_t line) {
     bytecode->lines[bytecode->count++] = line;
 }
 
+/**
+ * @brief Disassembles a bytecode intruction into a human readable format
+ * 
+ * @param bytecode The bytecode to disassemble
+ * @param index The index of the instruction to disassemble
+ */
 static void disassemble_instruction(Bytecode* bytecode, size_t* index) {
     Opcode opcode = bytecode->items[*index];
     switch (opcode) {
