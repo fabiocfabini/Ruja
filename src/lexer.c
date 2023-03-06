@@ -145,7 +145,12 @@ static Ruja_Token_Kind id_v_keyword(Ruja_Lexer* lexer) {
             }
         } break;
         case 'l': { return match(lexer, 1, 2, "et", RUJA_TOK_LET); break; }
-        case 'n': { return match(lexer, 1, 2, "ot", RUJA_TOK_NOT); break; }
+        case 'n': { 
+            switch(peek_offset(lexer, 1)) {
+                case 'o': return match(lexer, 2, 1, "t", RUJA_TOK_NOT); break;
+                case 'i': return match(lexer, 2, 1, "l", RUJA_TOK_NIL); break;
+            }
+        } break;
         case 'o': { return match(lexer, 1, 2, "r", RUJA_TOK_OR); break; }
         case 'p': { return match(lexer, 1, 3, "roc", RUJA_TOK_PROC); break; }
         case 'r': { return match(lexer, 1, 5, "eturn", RUJA_TOK_RETURN); break; }
@@ -268,6 +273,7 @@ static char* token_kind_to_string(Ruja_Token_Kind kind) {
         case RUJA_TOK_RETURN     : return "RETURN";
         case RUJA_TOK_STRUCT     : return "STRUCT";
         case RUJA_TOK_ENUM       : return "ENUM";
+        case RUJA_TOK_NIL        : return "NIL";
         case RUJA_TOK_TRUE       : return "TRUE";
         case RUJA_TOK_FALSE      : return "FALSE";
         case RUJA_TOK_LET        : return "LET";

@@ -101,6 +101,7 @@ static void integer(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
 static void floating(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
 static void character(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
 static void boolean(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
+static void nil(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
 static void string(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
 static void identifier(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
 static void grouping(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
@@ -149,6 +150,7 @@ static Parse_Rule rules[] = {
     [RUJA_TOK_RETURN]     = {NULL, NULL, PREC_NONE},
     [RUJA_TOK_STRUCT]     = {NULL, NULL, PREC_NONE},
     [RUJA_TOK_ENUM]       = {NULL, NULL, PREC_NONE},
+    [RUJA_TOK_NIL]        = {nil, NULL, PREC_NONE},
     [RUJA_TOK_TRUE]       = {boolean, NULL, PREC_NONE},
     [RUJA_TOK_FALSE]      = {boolean, NULL, PREC_NONE},
     [RUJA_TOK_LET]        = {NULL, NULL, PREC_NONE},
@@ -168,6 +170,11 @@ static Parse_Rule rules[] = {
  */
 static Parse_Rule *get_rule(Ruja_Token_Kind kind) {
     return kind >= 0 ? &rules[kind]: &rules[0]; // Rule 0 has all NULL pointers it can act as a default
+}
+
+static void nil(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
+    Word nil = MAKE_NIL();
+    (*ast) = ast_new_literal(nil);
 }
 
 static void boolean(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
