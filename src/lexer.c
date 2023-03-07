@@ -120,6 +120,18 @@ static Ruja_Token_Kind match(Ruja_Lexer* lexer, size_t start, size_t length, con
 static Ruja_Token_Kind id_v_keyword(Ruja_Lexer* lexer) {
     switch(peek_offset(lexer, 0)) {
         case 'a': { return match(lexer, 1, 2, "nd", RUJA_TOK_AND); break; }
+        case 'b': {
+            switch(peek_offset(lexer, 1)) {
+                case 'r': return match(lexer, 2, 2, "eak", RUJA_TOK_BREAK); break;
+                case 'o': return match(lexer, 2, 1, "ol", RUJA_TOK_TYPE_BOOL); break;
+            }
+        } break;
+        case 'c' : {
+            switch(peek_offset(lexer, 1)) {
+                case 'o': return match(lexer, 2, 6, "ntinue", RUJA_TOK_CONTINUE); break;
+                case 'h': return match(lexer, 2, 4, "ar", RUJA_TOK_TYPE_CHAR); break;
+            }
+        } break;
         case 'e': {
             switch(peek_offset(lexer, 1)) {
                 case 'l': {
@@ -135,13 +147,14 @@ static Ruja_Token_Kind id_v_keyword(Ruja_Lexer* lexer) {
             switch(peek_offset(lexer, 1)) {
                 case 'a': return match(lexer, 2, 3, "lse", RUJA_TOK_FALSE); break;
                 case 'o': return match(lexer, 2, 1, "r", RUJA_TOK_FOR); break;
+                case '6': return match(lexer, 2, 1, "4", RUJA_TOK_TYPE_F64); break;
             }
         } break;
         case 'i': {
             switch(peek_offset(lexer, 1)) {
                 case 'f': return match(lexer, 2, 0, "", RUJA_TOK_IF); break;
                 case 'n': return match(lexer, 2, 0, "", RUJA_TOK_IN); break;
-                case '8': return match(lexer, 2, 0, "", RUJA_TOK_TYPE_I8); break;
+                case '3': return match(lexer, 2, 1, "2", RUJA_TOK_TYPE_I32); break;
             }
         } break;
         case 'l': { return match(lexer, 1, 2, "et", RUJA_TOK_LET); break; }
@@ -154,7 +167,20 @@ static Ruja_Token_Kind id_v_keyword(Ruja_Lexer* lexer) {
         case 'o': { return match(lexer, 1, 2, "r", RUJA_TOK_OR); break; }
         case 'p': { return match(lexer, 1, 3, "roc", RUJA_TOK_PROC); break; }
         case 'r': { return match(lexer, 1, 5, "eturn", RUJA_TOK_RETURN); break; }
-        case 's': { return match(lexer, 1, 5, "truct", RUJA_TOK_STRUCT); break; }
+        case 's': { 
+            switch (peek_offset(lexer, 1)) {
+                case 't': {
+                    switch (peek_offset(lexer, 2)) {
+                        case 'r': {
+                            switch (peek_offset(lexer, 3)) {
+                                case 'u': return match(lexer, 4, 1, "c", RUJA_TOK_STRUCT); break;
+                                case 'i': return match(lexer, 4, 2, "ng", RUJA_TOK_TYPE_STRING); break;
+                            }
+                        } break;
+                    }
+                } break;
+            }
+        } break;
         case 't': { return match(lexer, 1, 3, "rue", RUJA_TOK_TRUE); break; }
     }
 
@@ -252,7 +278,6 @@ static char* token_kind_to_string(Ruja_Token_Kind kind) {
         case RUJA_TOK_MUL        : return "MUL";
         case RUJA_TOK_DIV        : return "DIV";
         case RUJA_TOK_PERCENT    : return "PERCENT";
-        case RUJA_TOK_BANG       : return "BANG";
         case RUJA_TOK_EQ         : return "EQ";
         case RUJA_TOK_LE         : return "LE";
         case RUJA_TOK_GE         : return "GE";
@@ -277,7 +302,13 @@ static char* token_kind_to_string(Ruja_Token_Kind kind) {
         case RUJA_TOK_TRUE       : return "TRUE";
         case RUJA_TOK_FALSE      : return "FALSE";
         case RUJA_TOK_LET        : return "LET";
-        case RUJA_TOK_TYPE_I8    : return "I8";
+        case RUJA_TOK_BREAK      : return "BREAK";
+        case RUJA_TOK_CONTINUE   : return "CONTINUE";
+        case RUJA_TOK_TYPE_I32   : return "I32";
+        case RUJA_TOK_TYPE_F64   : return "F64";
+        case RUJA_TOK_TYPE_BOOL  : return "BOOL";
+        case RUJA_TOK_TYPE_CHAR  : return "CHAR";
+        case RUJA_TOK_TYPE_STRING: return "STRING";
         case RUJA_TOK_ID         : return "ID";
         case RUJA_TOK_INT        : return "INT";
         case RUJA_TOK_FLOAT      : return "FLOAT";
