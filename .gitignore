@@ -5,3 +5,4 @@ exe/*
 *.dot
 nan.c
 input.ruja
+tokens.ruja
