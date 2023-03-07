@@ -4,3 +4,4 @@ exe/*
 *.pdf
 *.dot
 nan.c
+input.ruja
