@@ -8,6 +8,7 @@
 #include "includes/stack.h"
 #include "includes/vm.h"
 #include "includes/ast.h"
+#include "includes/compiler.h"
 
 void shift_agrs(int* argc, char*** argv) {
     (*argc)--;
@@ -84,7 +85,7 @@ int main() {
 }
 #endif
 
-#if 1 // Parser test
+#if 0 // Parser test
 int main(int argc, char** argv) {
     if (argc < 2) {
         usage(); return 1;
@@ -146,6 +147,21 @@ int main() {
 
     ast_dot(expression, stdout);
     ast_free(expression);
+    return 0;
+}
+#endif
+
+#if 1 // Compiler test
+int main(int argc, char** argv) {
+    Ruja_Compiler* compiler = compiler_new();
+    Ruja_Vm* vm = vm_new();
+
+    if (compile(compiler, "input.ruja", vm->bytecode) != RUJA_COMPILER_ERROR) {
+        vm_run(vm);
+    }
+
+    vm_free(vm);
+    compiler_free(compiler);
     return 0;
 }
 #endif
