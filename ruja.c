@@ -85,6 +85,28 @@ int main() {
 }
 #endif
 
+#if 1 // Lexer test
+int main(void) {
+    Ruja_Lexer* lexer = lexer_new("tokens.ruja");
+    if (lexer != NULL) {
+        Ruja_Token token;
+
+        do {
+            token = next_token(lexer);
+            token_to_string(&token);
+            if (token.kind == RUJA_TOK_ERR) {
+                printf("Error\n");
+                break;
+            }
+        } while (token.kind != RUJA_TOK_EOF);
+
+        lexer_free(lexer);
+    }
+
+    return 0;
+}
+#endif
+
 #if 0 // Parser test
 int main(int argc, char** argv) {
     if (argc < 2) {
@@ -151,7 +173,7 @@ int main() {
 }
 #endif
 
-#if 1 // Compiler test
+#if 0 // Compiler test
 int main(int argc, char** argv) {
     Ruja_Compiler* compiler = compiler_new();
     Ruja_Vm* vm = vm_new();
