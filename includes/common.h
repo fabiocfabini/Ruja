@@ -14,4 +14,6 @@
         fprintf(stderr, "%s:%d: %s is not implemented\n", file, line, msg); \
     } while (0)
 
+#define UNUSED(x) (void)(x)
+
 #endif // RUJA_COMMON_H
