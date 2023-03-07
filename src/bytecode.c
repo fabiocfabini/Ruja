@@ -145,9 +145,13 @@ void disassemble(Bytecode* bytecode, const char* name) {
 }
 
 void save_bytecode(Bytecode* bytecode, const char* filename) {
-
+    UNUSED(bytecode);
+    UNUSED(filename);
+    NOT_IMPLEMENTED("save_bytecode", __FILE__, __LINE__);
 }
 
 Bytecode* load_bytecode(const char* filename) {
+    UNUSED(filename);
+    NOT_IMPLEMENTED("load_bytecode", __FILE__, __LINE__);
     return NULL;
 }

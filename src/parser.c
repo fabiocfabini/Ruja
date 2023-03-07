@@ -179,6 +179,9 @@ static Parse_Rule *get_rule(Ruja_Token_Kind kind) {
  * @param lexer The Lexer is use
  */
 static void nil(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
+    UNUSED(parser);
+    UNUSED(lexer);
+
     Word nil = MAKE_NIL();
     (*ast) = ast_new_literal(nil);
 }
@@ -190,6 +193,8 @@ static void nil(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
  * @param lexer The Lexer is use
  */
 static void boolean(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
+    UNUSED(lexer);
+    
     Word boolean = MAKE_BOOL(parser->previous.start[0] == 't');
     (*ast) = ast_new_literal(boolean);
 }
@@ -201,6 +206,8 @@ static void boolean(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
  * @param lexer The Lexer is use
  */
 static void integer(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
+    UNUSED(lexer);
+    
     Word integer = MAKE_INT(strtod(parser->previous.start, NULL));
     (*ast) = ast_new_literal(integer);
 }
@@ -212,6 +219,8 @@ static void integer(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
  * @param lexer The Lexer is use
  */
 static void floating(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
+    UNUSED(lexer);
+    
     Word floating = MAKE_DOUBLE(strtod(parser->previous.start, NULL));
     (*ast) = ast_new_literal(floating);
 }
@@ -223,6 +232,8 @@ static void floating(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
  * @param lexer The Lexer is use
  */
 static void character(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
+    UNUSED(lexer);
+    
     Word character = MAKE_CHAR(parser->previous.start[0]);
     (*ast) = ast_new_literal(character);
 }
@@ -234,6 +245,10 @@ static void character(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
  * @param lexer The Lexer is use
  */
 static void string(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
+    UNUSED(lexer);
+    UNUSED(parser);
+    UNUSED(ast);
+    
     NOT_IMPLEMENTED("String parsing", __FILE__, __LINE__);
 }
 
@@ -244,6 +259,10 @@ static void string(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
  * @param lexer The Lexer is use
  */
 static void identifier(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
+    UNUSED(lexer);
+    UNUSED(parser);
+    UNUSED(ast);
+    
     NOT_IMPLEMENTED("Identifier parsing", __FILE__, __LINE__);
 }
 
