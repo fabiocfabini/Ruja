@@ -104,7 +104,7 @@ Ruja_Vm_Status vm_run(Ruja_Vm *vm) {
 
                 vm->ip++;
             } break;
-            case OP_ADD_F64 : {
+            case OP_ADD : {
                 if (vm->stack->count < 2) {
                     fprintf(stderr, "Stack underflow at ip=%"PRIu64"\n", vm->ip);
                     return RUJA_VM_ERROR;
@@ -118,7 +118,7 @@ Ruja_Vm_Status vm_run(Ruja_Vm *vm) {
                 vm->stack->count--;
                 vm->ip++;
             } break;
-            case OP_SUB_F64 : {
+            case OP_SUB : {
                 if (vm->stack->count < 2) {
                     fprintf(stderr, "Stack underflow at ip=%"PRIu64"\n", vm->ip);
                     return RUJA_VM_ERROR;
@@ -132,7 +132,7 @@ Ruja_Vm_Status vm_run(Ruja_Vm *vm) {
                 vm->stack->count--;
                 vm->ip++;
             } break;
-            case OP_MUL_F64 : {
+            case OP_MUL : {
                 if (vm->stack->count < 2) {
                     fprintf(stderr, "Stack underflow at ip=%"PRIu64"\n", vm->ip);
                     return RUJA_VM_ERROR;
@@ -146,7 +146,7 @@ Ruja_Vm_Status vm_run(Ruja_Vm *vm) {
                 vm->stack->count--;
                 vm->ip++;
             } break;
-            case OP_DIV_F64 : {
+            case OP_DIV : {
                 if (vm->stack->count < 2) {
                     fprintf(stderr, "Stack underflow at ip=%"PRIu64"\n", vm->ip);
                     return RUJA_VM_ERROR;
@@ -160,7 +160,7 @@ Ruja_Vm_Status vm_run(Ruja_Vm *vm) {
                 vm->stack->count--;
                 vm->ip++;
             } break;
-            case OP_EQ_F64  : {
+            case OP_EQ  : {
                 if (vm->stack->count < 2) {
                     fprintf(stderr, "Stack underflow at ip=%"PRIu64"\n", vm->ip);
                     return RUJA_VM_ERROR;
@@ -174,7 +174,7 @@ Ruja_Vm_Status vm_run(Ruja_Vm *vm) {
                 vm->stack->count--;
                 vm->ip++;
             } break;
-            case OP_NEQ_F64 : {
+            case OP_NEQ : {
                 if (vm->stack->count < 2) {
                     fprintf(stderr, "Stack underflow at ip=%"PRIu64"\n", vm->ip);
                     return RUJA_VM_ERROR;
@@ -188,7 +188,7 @@ Ruja_Vm_Status vm_run(Ruja_Vm *vm) {
                 vm->stack->count--;
                 vm->ip++;
             } break;
-            case OP_LT_F64  : {
+            case OP_LT  : {
                 if (vm->stack->count < 2) {
                     fprintf(stderr, "Stack underflow at ip=%"PRIu64"\n", vm->ip);
                     return RUJA_VM_ERROR;
@@ -202,7 +202,7 @@ Ruja_Vm_Status vm_run(Ruja_Vm *vm) {
                 vm->stack->count--;
                 vm->ip++;
             } break;
-            case OP_LTE_F64 : {
+            case OP_LTE : {
                 if (vm->stack->count < 2) {
                     fprintf(stderr, "Stack underflow at ip=%"PRIu64"\n", vm->ip);
                     return RUJA_VM_ERROR;
@@ -216,7 +216,7 @@ Ruja_Vm_Status vm_run(Ruja_Vm *vm) {
                 vm->stack->count--;
                 vm->ip++;
             } break;
-            case OP_GT_F64  : {
+            case OP_GT  : {
                 if (vm->stack->count < 2) {
                     fprintf(stderr, "Stack underflow at ip=%"PRIu64"\n", vm->ip);
                     return RUJA_VM_ERROR;
@@ -230,7 +230,7 @@ Ruja_Vm_Status vm_run(Ruja_Vm *vm) {
                 vm->stack->count--;
                 vm->ip++;
             } break;
-            case OP_GTE_F64 : {
+            case OP_GTE : {
                 if (vm->stack->count < 2) {
                     fprintf(stderr, "Stack underflow at ip=%"PRIu64"\n", vm->ip);
                     return RUJA_VM_ERROR;

@@ -70,16 +70,16 @@ static Ruja_Compile_Error compile_internal(Ruja_Ast ast, Bytecode* bytecode) {
 
             // TODO: Add typed binary operations to the parser. For now, we'll just assume that all literals are integers.
             switch (ast->as.binary_op.type) {
-                case AST_BINARY_OP_ADD : add_opcode(bytecode, OP_ADD_F64, 0); break;
-                case AST_BINARY_OP_SUB : add_opcode(bytecode, OP_SUB_F64, 0); break;
-                case AST_BINARY_OP_MUL : add_opcode(bytecode, OP_MUL_F64, 0); break;
-                case AST_BINARY_OP_DIV : add_opcode(bytecode, OP_DIV_F64, 0); break;
-                case AST_BINARY_OP_EQ  : add_opcode(bytecode, OP_EQ_F64, 0); break;
-                case AST_BINARY_OP_NE  : add_opcode(bytecode, OP_NEQ_F64, 0); break;
-                case AST_BINARY_OP_LT  : add_opcode(bytecode, OP_LT_F64, 0); break;
-                case AST_BINARY_OP_LE  : add_opcode(bytecode, OP_LTE_F64, 0); break;
-                case AST_BINARY_OP_GT  : add_opcode(bytecode, OP_GT_F64, 0); break;
-                case AST_BINARY_OP_GE  : add_opcode(bytecode, OP_GTE_F64, 0); break;
+                case AST_BINARY_OP_ADD : add_opcode(bytecode, OP_ADD, 0); break;
+                case AST_BINARY_OP_SUB : add_opcode(bytecode, OP_SUB, 0); break;
+                case AST_BINARY_OP_MUL : add_opcode(bytecode, OP_MUL, 0); break;
+                case AST_BINARY_OP_DIV : add_opcode(bytecode, OP_DIV, 0); break;
+                case AST_BINARY_OP_EQ  : add_opcode(bytecode, OP_EQ, 0); break;
+                case AST_BINARY_OP_NE  : add_opcode(bytecode, OP_NEQ, 0); break;
+                case AST_BINARY_OP_LT  : add_opcode(bytecode, OP_LT, 0); break;
+                case AST_BINARY_OP_LE  : add_opcode(bytecode, OP_LTE, 0); break;
+                case AST_BINARY_OP_GT  : add_opcode(bytecode, OP_GT, 0); break;
+                case AST_BINARY_OP_GE  : add_opcode(bytecode, OP_GTE, 0); break;
                 case AST_BINARY_OP_AND : add_opcode(bytecode, OP_AND, 0); break;
                 case AST_BINARY_OP_OR  : add_opcode(bytecode, OP_OR, 0); break;
             }
