@@ -123,7 +123,7 @@ int main(int argc, char** argv) {
                 if (lexer != NULL) {
                     Ruja_Parser* parser = parser_new();
                     if (parser != NULL) {
-                        Ruja_Ast ast = ast_new();
+                        Ruja_Ast ast = ast_new_expression(NULL);
                         if (ast != NULL) {
                             if (parse(parser, lexer, &ast)) {
                                 ast_dot(ast, stdout);
