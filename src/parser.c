@@ -31,7 +31,7 @@ static void parser_error(Ruja_Parser *parser, Ruja_Lexer *lexer, const char *msg
         return;
     parser->panic_mode = true;
 
-    fprintf(stderr, "%s:%" PRIu64 ": " RED "parse error" RESET " %s got '%.*s'.\n", lexer->source, parser->current.line, msg, (int)parser->current.length, parser->current.start);
+    fprintf(stderr, "%s:%" PRIu64 ": " RED "parse error" RESET " %s got '%.*s'.\n", lexer->source, parser->previous.line, msg, (int)parser->previous.length, parser->previous.start);
     parser->had_error = true;
 }
 
@@ -464,7 +464,12 @@ static void parse_precedence(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* a
 
     while (precedence <= get_rule(parser->current.kind)->precedence) {
         advance(parser, lexer);
-        get_rule(parser->previous.kind)->infix(parser, lexer, ast);
+        Parser_Function infix_rule = get_rule(parser->previous.kind)->infix;
+        if (infix_rule == NULL) {
+            parser_error(parser, lexer, "Expected binary operator");
+            return;
+        }
+        infix_rule(parser, lexer, ast);
     }
 }
 
