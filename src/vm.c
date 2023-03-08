@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 
 #include "../includes/vm.h"
 #include "../includes/memory.h"
@@ -89,13 +90,20 @@ Ruja_Vm_Status vm_run(Ruja_Vm *vm) {
                 }
 
                 Word word = vm->stack->items[vm->stack->count-1];
-                vm->stack->items[vm->stack->count-1] = MAKE_DOUBLE(-(AS_DOUBLE(word)));
+                if (IS_DOUBLE(word)) {
+                    vm->stack->items[vm->stack->count-1] = MAKE_DOUBLE(-(AS_DOUBLE(word)));
+                } else if (IS_INT(word)) {
+                    vm->stack->items[vm->stack->count-1] = MAKE_INT(-(AS_INT(word)));
+                } else {
+                    fprintf(stderr, RED"BUG: "WHITE"Invalid type for negation in ip '%zu' VM. This is probably a bug in the type checking.\n"RESET, vm->ip);
+                    return RUJA_VM_ERROR;
+                }
 
                 vm->ip++;
             } break;
             case OP_NOT: {
                 if (vm->stack->count < 1) {
-                    fprintf(stderr, "Stack underflow at ip=%"PRIu64"\n", vm->ip);
+                    fprintf(stderr, RED"ERROR: "WHITE"Stack underflow at ip=%"PRIu64"\n"RESET, vm->ip);
                     return RUJA_VM_ERROR;
                 }
 
@@ -113,10 +121,21 @@ Ruja_Vm_Status vm_run(Ruja_Vm *vm) {
                 Word word1 = vm->stack->items[vm->stack->count-2];
                 Word word2 = vm->stack->items[vm->stack->count-1];
 
-                vm->stack->items[vm->stack->count-2] = MAKE_DOUBLE(AS_DOUBLE(word1) + AS_DOUBLE(word2));
-
-                vm->stack->count--;
-                vm->ip++;
+                if (IS_DOUBLE(word1) && IS_DOUBLE(word1)) {
+                    vm->stack->items[vm->stack->count-2] = MAKE_DOUBLE(AS_DOUBLE(word1) + AS_DOUBLE(word2));
+                    vm->stack->count--;
+                    vm->ip++;
+                } else if (TYPE(word1) != TYPE(word2)) {
+                    fprintf(stderr, RED"BUG: "WHITE"Invalid types for addition in ip '%zu' VM. This is probably a bug in the type checking.\n"RESET, vm->ip);
+                    return RUJA_VM_ERROR;
+                } else if (IS_INT(word1)) {
+                    vm->stack->items[vm->stack->count-2] = MAKE_INT(AS_INT(word1) + AS_INT(word2));
+                    vm->stack->count--;
+                    vm->ip++;
+                } else {
+                    fprintf(stderr, RED"BUG: "WHITE"Invalid types for addition in ip '%zu' VM. This is probably a bug in the type checking.\n"RESET, vm->ip);
+                    return RUJA_VM_ERROR;
+                }
             } break;
             case OP_SUB : {
                 if (vm->stack->count < 2) {
@@ -127,10 +146,21 @@ Ruja_Vm_Status vm_run(Ruja_Vm *vm) {
                 Word word1 = vm->stack->items[vm->stack->count-2];
                 Word word2 = vm->stack->items[vm->stack->count-1];
 
-                vm->stack->items[vm->stack->count-2] = MAKE_DOUBLE(AS_DOUBLE(word1) - AS_DOUBLE(word2));
-
-                vm->stack->count--;
-                vm->ip++;
+                if (IS_DOUBLE(word1) && IS_DOUBLE(word1)) {
+                    vm->stack->items[vm->stack->count-2] = MAKE_DOUBLE(AS_DOUBLE(word1) - AS_DOUBLE(word2));
+                    vm->stack->count--;
+                    vm->ip++;
+                } else if (TYPE(word1) != TYPE(word2)) {
+                    fprintf(stderr, RED"BUG: "WHITE"Invalid types for addition in ip '%zu' VM. This is probably a bug in the type checking.\n"RESET, vm->ip);
+                    return RUJA_VM_ERROR;
+                } else if (IS_INT(word1)) {
+                    vm->stack->items[vm->stack->count-2] = MAKE_INT(AS_INT(word1) - AS_INT(word2));
+                    vm->stack->count--;
+                    vm->ip++;
+                } else {
+                    fprintf(stderr, RED"BUG: "WHITE"Invalid types for addition in ip '%zu' VM. This is probably a bug in the type checking.\n"RESET, vm->ip);
+                    return RUJA_VM_ERROR;
+                }
             } break;
             case OP_MUL : {
                 if (vm->stack->count < 2) {
@@ -141,10 +171,21 @@ Ruja_Vm_Status vm_run(Ruja_Vm *vm) {
                 Word word1 = vm->stack->items[vm->stack->count-2];
                 Word word2 = vm->stack->items[vm->stack->count-1];
 
-                vm->stack->items[vm->stack->count-2] = MAKE_DOUBLE(AS_DOUBLE(word1) * AS_DOUBLE(word2));
-
-                vm->stack->count--;
-                vm->ip++;
+                if (IS_DOUBLE(word1) && IS_DOUBLE(word1)) {
+                    vm->stack->items[vm->stack->count-2] = MAKE_DOUBLE(AS_DOUBLE(word1) * AS_DOUBLE(word2));
+                    vm->stack->count--;
+                    vm->ip++;
+                } else if (TYPE(word1) != TYPE(word2)) {
+                    fprintf(stderr, RED"BUG: "WHITE"Invalid types for addition in ip '%zu' VM. This is probably a bug in the type checking.\n"RESET, vm->ip);
+                    return RUJA_VM_ERROR;
+                } else if (IS_INT(word1)) {
+                    vm->stack->items[vm->stack->count-2] = MAKE_INT(AS_INT(word1) * AS_INT(word2));
+                    vm->stack->count--;
+                    vm->ip++;
+                } else {
+                    fprintf(stderr, RED"BUG: "WHITE"Invalid types for addition in ip '%zu' VM. This is probably a bug in the type checking.\n"RESET, vm->ip);
+                    return RUJA_VM_ERROR;
+                }
             } break;
             case OP_DIV : {
                 if (vm->stack->count < 2) {
@@ -155,10 +196,29 @@ Ruja_Vm_Status vm_run(Ruja_Vm *vm) {
                 Word word1 = vm->stack->items[vm->stack->count-2];
                 Word word2 = vm->stack->items[vm->stack->count-1];
 
-                vm->stack->items[vm->stack->count-2] = MAKE_DOUBLE(AS_DOUBLE(word1) / AS_DOUBLE(word2));
-
-                vm->stack->count--;
-                vm->ip++;
+                if (IS_DOUBLE(word1) && IS_DOUBLE(word1)) {
+                    if (AS_DOUBLE(word2) == 0.0) {
+                        fprintf(stderr, "Division by zero at ip=%"PRIu64"\n", vm->ip);
+                        return RUJA_VM_ERROR;
+                    }
+                    vm->stack->items[vm->stack->count-2] = MAKE_DOUBLE(AS_DOUBLE(word1) * AS_DOUBLE(word2));
+                    vm->stack->count--;
+                    vm->ip++;
+                } else if (TYPE(word1) != TYPE(word2)) {
+                    fprintf(stderr, RED"BUG: "WHITE"Invalid types for addition in ip '%zu' VM. This is probably a bug in the type checking.\n"RESET, vm->ip);
+                    return RUJA_VM_ERROR;
+                } else if (IS_INT(word1)) {
+                    if (AS_INT(word2) == 0) {
+                        fprintf(stderr, "Division by zero at ip=%"PRIu64"\n", vm->ip);
+                        return RUJA_VM_ERROR;
+                    }
+                    vm->stack->items[vm->stack->count-2] = MAKE_INT(AS_INT(word1) * AS_INT(word2));
+                    vm->stack->count--;
+                    vm->ip++;
+                } else {
+                    fprintf(stderr, RED"BUG: "WHITE"Invalid types for addition in ip '%zu' VM. This is probably a bug in the type checking.\n"RESET, vm->ip);
+                    return RUJA_VM_ERROR;
+                }
             } break;
             case OP_EQ  : {
                 if (vm->stack->count < 2) {
@@ -169,7 +229,15 @@ Ruja_Vm_Status vm_run(Ruja_Vm *vm) {
                 Word word1 = vm->stack->items[vm->stack->count-2];
                 Word word2 = vm->stack->items[vm->stack->count-1];
 
-                vm->stack->items[vm->stack->count-2] = MAKE_BOOL(AS_DOUBLE(word1) == AS_DOUBLE(word2));
+                if (TYPE(word1) != TYPE(word2)) {
+                    vm->stack->items[vm->stack->count-2] = MAKE_BOOL(false);
+                } else {
+                    if (IS_DOUBLE(word1)) {
+                        vm->stack->items[vm->stack->count-2] = MAKE_BOOL(AS_DOUBLE(word1) == AS_DOUBLE(word2));
+                    } else {
+                        vm->stack->items[vm->stack->count-2] = MAKE_BOOL(word1 == word2);
+                    }
+                }
 
                 vm->stack->count--;
                 vm->ip++;
@@ -183,7 +251,15 @@ Ruja_Vm_Status vm_run(Ruja_Vm *vm) {
                 Word word1 = vm->stack->items[vm->stack->count-2];
                 Word word2 = vm->stack->items[vm->stack->count-1];
 
-                vm->stack->items[vm->stack->count-2] = MAKE_BOOL(AS_DOUBLE(word1) != AS_DOUBLE(word2));
+                if (TYPE(word1) != TYPE(word2)) {
+                    vm->stack->items[vm->stack->count-2] = MAKE_BOOL(true);
+                } else {
+                    if (IS_DOUBLE(word1)) {
+                        vm->stack->items[vm->stack->count-2] = MAKE_BOOL(AS_DOUBLE(word1) != AS_DOUBLE(word2));
+                    } else {
+                        vm->stack->items[vm->stack->count-2] = MAKE_BOOL(word1 != word2);
+                    }
+                }
 
                 vm->stack->count--;
                 vm->ip++;
@@ -197,7 +273,19 @@ Ruja_Vm_Status vm_run(Ruja_Vm *vm) {
                 Word word1 = vm->stack->items[vm->stack->count-2];
                 Word word2 = vm->stack->items[vm->stack->count-1];
 
-                vm->stack->items[vm->stack->count-2] = MAKE_BOOL(AS_DOUBLE(word1) < AS_DOUBLE(word2));
+                if (TYPE(word1) != TYPE(word2)) {
+                    fprintf(stderr, RED"BUG: "WHITE"Invalid types for '<' in ip '%zu' VM. This is probably a bug in the type checking.\n"RESET, vm->ip);
+                    return RUJA_VM_ERROR;
+                } else {
+                    if (IS_DOUBLE(word1)) {
+                        vm->stack->items[vm->stack->count-2] = MAKE_BOOL(AS_DOUBLE(word1) < AS_DOUBLE(word2));
+                    } else if (IS_INT(word1)) {
+                        vm->stack->items[vm->stack->count-2] = MAKE_BOOL(AS_INT(word1) < AS_INT(word2));
+                    } else {
+                        fprintf(stderr, RED"BUG: "WHITE"Invalid types for '<' in ip '%zu' VM. This is probably a bug in the type checking.\n"RESET, vm->ip);
+                        return RUJA_VM_ERROR;
+                    }
+                }
 
                 vm->stack->count--;
                 vm->ip++;
@@ -211,7 +299,19 @@ Ruja_Vm_Status vm_run(Ruja_Vm *vm) {
                 Word word1 = vm->stack->items[vm->stack->count-2];
                 Word word2 = vm->stack->items[vm->stack->count-1];
 
-                vm->stack->items[vm->stack->count-2] = MAKE_BOOL(AS_DOUBLE(word1) <= AS_DOUBLE(word2));
+                if (TYPE(word1) != TYPE(word2)) {
+                    fprintf(stderr, RED"BUG: "WHITE"Invalid types for '<=' in ip '%zu' VM. This is probably a bug in the type checking.\n"RESET, vm->ip);
+                    return RUJA_VM_ERROR;
+                } else {
+                    if (IS_DOUBLE(word1)) {
+                        vm->stack->items[vm->stack->count-2] = MAKE_BOOL(AS_DOUBLE(word1) <= AS_DOUBLE(word2));
+                    } else if (IS_INT(word1)) {
+                        vm->stack->items[vm->stack->count-2] = MAKE_BOOL(AS_INT(word1) <= AS_INT(word2));
+                    } else {
+                        fprintf(stderr, RED"BUG: "WHITE"Invalid types for '<=' in ip '%zu' VM. This is probably a bug in the type checking.\n"RESET, vm->ip);
+                        return RUJA_VM_ERROR;
+                    }
+                }
 
                 vm->stack->count--;
                 vm->ip++;
@@ -225,7 +325,19 @@ Ruja_Vm_Status vm_run(Ruja_Vm *vm) {
                 Word word1 = vm->stack->items[vm->stack->count-2];
                 Word word2 = vm->stack->items[vm->stack->count-1];
 
-                vm->stack->items[vm->stack->count-2] = MAKE_BOOL(AS_DOUBLE(word1) > AS_DOUBLE(word2));
+                if (TYPE(word1) != TYPE(word2)) {
+                    fprintf(stderr, RED"BUG: "WHITE"Invalid types for '>' in ip '%zu' VM. This is probably a bug in the type checking.\n"RESET, vm->ip);
+                    return RUJA_VM_ERROR;
+                } else {
+                    if (IS_DOUBLE(word1)) {
+                        vm->stack->items[vm->stack->count-2] = MAKE_BOOL(AS_DOUBLE(word1) > AS_DOUBLE(word2));
+                    } else if (IS_INT(word1)) {
+                        vm->stack->items[vm->stack->count-2] = MAKE_BOOL(AS_INT(word1) > AS_INT(word2));
+                    } else {
+                        fprintf(stderr, RED"BUG: "WHITE"Invalid types for '>' in ip '%zu' VM. This is probably a bug in the type checking.\n"RESET, vm->ip);
+                        return RUJA_VM_ERROR;
+                    }
+                }
 
                 vm->stack->count--;
                 vm->ip++;
@@ -239,7 +351,19 @@ Ruja_Vm_Status vm_run(Ruja_Vm *vm) {
                 Word word1 = vm->stack->items[vm->stack->count-2];
                 Word word2 = vm->stack->items[vm->stack->count-1];
 
-                vm->stack->items[vm->stack->count-2] = MAKE_BOOL(AS_DOUBLE(word1) >= AS_DOUBLE(word2));
+                if (TYPE(word1) != TYPE(word2)) {
+                    fprintf(stderr, RED"BUG: "WHITE"Invalid types for '>=' in ip '%zu' VM. This is probably a bug in the type checking.\n"RESET, vm->ip);
+                    return RUJA_VM_ERROR;
+                } else {
+                    if (IS_DOUBLE(word1)) {
+                        vm->stack->items[vm->stack->count-2] = MAKE_BOOL(AS_DOUBLE(word1) >= AS_DOUBLE(word2));
+                    } else if (IS_INT(word1)) {
+                        vm->stack->items[vm->stack->count-2] = MAKE_BOOL(AS_INT(word1) >= AS_INT(word2));
+                    } else {
+                        fprintf(stderr, RED"BUG: "WHITE"Invalid types for '>=' in ip '%zu' VM. This is probably a bug in the type checking.\n"RESET, vm->ip);
+                        return RUJA_VM_ERROR;
+                    }
+                }
 
                 vm->stack->count--;
                 vm->ip++;

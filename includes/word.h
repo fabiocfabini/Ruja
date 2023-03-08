@@ -17,6 +17,8 @@ typedef uint64_t Word;
 // Mask
 #define MASK_TYPE  0x7FFF000000000000
 #define MASK_VALUE 0x0000FFFFFFFFFFFF
+#define TYPE(x)    ((x) & MASK_TYPE)
+#define VALUE(x)   ((x) & MASK_VALUE)
 
 // Checks
 #define IS_NAN(x)   (((x) & MASK_TYPE) == TYPE_NAN)

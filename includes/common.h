@@ -6,8 +6,9 @@
 #include <stdbool.h>
 #include <inttypes.h>
 
-#define RED     "\x1B[31m"
-#define RESET   "\x1B[0m"
+#define RED "\033[1;31m"
+#define WHITE "\033[1;37m"
+#define RESET "\033[0m" 
 
 #define NOT_IMPLEMENTED(msg, file, line) \
     do { \
