@@ -68,7 +68,6 @@ static Ruja_Compile_Error compile_internal(Ruja_Ast ast, Bytecode* bytecode) {
             error = compile_internal(ast->as.binary_op.right_expression, bytecode);
             if (error != RUJA_COMPILER_OK) return error;
 
-            // TODO: Add typed binary operations to the parser. For now, we'll just assume that all literals are integers.
             switch (ast->as.binary_op.type) {
                 case AST_BINARY_OP_ADD : add_opcode(bytecode, OP_ADD, 0); break;
                 case AST_BINARY_OP_SUB : add_opcode(bytecode, OP_SUB, 0); break;
