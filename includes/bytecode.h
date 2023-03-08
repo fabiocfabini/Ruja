@@ -42,7 +42,6 @@ typedef struct {
     size_t*  lines;
 
     Words* constant_words;
-
 } Bytecode;
 
 Bytecode* bytecode_new();
@@ -50,7 +49,10 @@ void bytecode_free(Bytecode* bytecode);
 
 size_t add_constant(Bytecode* bytecode, Word word);
 void add_opcode(Bytecode* bytecode, uint8_t byte, size_t line);
+void add_operand(Bytecode* bytecode, size_t bytes, size_t line);
 
+
+void print_operand(Bytecode* bytecode, size_t index, int format);
 const char* opcode_to_string(Opcode opcode);
 void disassemble(Bytecode* bytecode, const char* name);
 

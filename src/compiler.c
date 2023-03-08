@@ -38,7 +38,7 @@ static void push_word(Bytecode* bytecode, Word word) {
         default: {
             size_t index = add_constant(bytecode, word);
             add_opcode(bytecode, OP_CONST, 0);
-            add_opcode(bytecode, index, 0);
+            add_operand(bytecode, index, 0);
         }
     }
 }
@@ -90,21 +90,30 @@ static Ruja_Compile_Error compile_internal(Ruja_Ast ast, Bytecode* bytecode) {
 
             add_opcode(bytecode, OP_JZ, 0);
             size_t jmp_false = bytecode->count;
-            add_opcode(bytecode, 0, 0);
+            add_operand(bytecode, 0, 0);
 
             error = compile_internal(ast->as.ternary_op.true_expression, bytecode);
             if (error != RUJA_COMPILER_OK) return error;
 
             add_opcode(bytecode, OP_JUMP, 0);
             size_t jmp = bytecode->count;
-            add_opcode(bytecode, 0, 0);
+            add_operand(bytecode, 0, 0);
 
-            bytecode->items[jmp_false] = jmp - jmp_false + 2;
+            size_t operand_offset = jmp - jmp_false + 5;
+            bytecode->items[jmp_false] = (uint8_t) ((operand_offset >> 24) & 0xFF);
+            bytecode->items[jmp_false + 1] = (uint8_t) ((operand_offset >> 16) & 0xFF);
+            bytecode->items[jmp_false + 2] = (uint8_t) ((operand_offset >> 8) & 0xFF);
+            bytecode->items[jmp_false + 3] = (uint8_t) (operand_offset & 0xFF);
 
             error = compile_internal(ast->as.ternary_op.false_expression, bytecode);
             if (error != RUJA_COMPILER_OK) return error;
 
-            bytecode->items[jmp] = bytecode->count - jmp + 1;
+            operand_offset = bytecode->count - jmp + 1;
+            bytecode->items[jmp] = (uint8_t) ((operand_offset >> 24) & 0xFF);
+            bytecode->items[jmp + 1] = (uint8_t) ((operand_offset >> 16) & 0xFF);
+            bytecode->items[jmp + 2] = (uint8_t) ((operand_offset >> 8) & 0xFF);
+            bytecode->items[jmp + 3] = (uint8_t) (operand_offset & 0xFF);
+
         } break;
         case AST_NODE_EXPRESSION: {
             Ruja_Compile_Error error = compile_internal(ast->as.expr.expression, bytecode);

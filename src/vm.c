@@ -63,8 +63,12 @@ Ruja_Vm_Status vm_run(Ruja_Vm *vm) {
                 return RUJA_VM_OK;
             }
             case OP_CONST: {
-                stack_push(vm->stack, vm->bytecode->constant_words->items[vm->bytecode->items[vm->ip+1]]);
-                vm->ip += 2;
+                size_t constant_index = (((size_t) vm->bytecode->items[vm->ip+1]) << 24) |
+                                        (((size_t) vm->bytecode->items[vm->ip+2]) << 16) |
+                                        (((size_t) vm->bytecode->items[vm->ip+3]) << 8) |
+                                        (((size_t) vm->bytecode->items[vm->ip+4]));
+                stack_push(vm->stack, vm->bytecode->constant_words->items[constant_index]);
+                vm->ip += 5;
             } break;
             case OP_NIL: {
                 stack_push(vm->stack, MAKE_NIL());
@@ -269,8 +273,11 @@ Ruja_Vm_Status vm_run(Ruja_Vm *vm) {
                 vm->ip++;
             } break;
             case OP_JUMP: {
-                uint8_t offset = vm->bytecode->items[vm->ip+1];
-                vm->ip += offset;
+                size_t operand = (((size_t) vm->bytecode->items[vm->ip+1]) << 24) |
+                                (((size_t) vm->bytecode->items[vm->ip+2]) << 16) |
+                                (((size_t) vm->bytecode->items[vm->ip+3]) << 8) |
+                                (((size_t) vm->bytecode->items[vm->ip+4]));
+                vm->ip += operand;
             } break;
             case OP_JZ: {
                 if (vm->stack->count < 1) {
@@ -282,10 +289,13 @@ Ruja_Vm_Status vm_run(Ruja_Vm *vm) {
                 vm->stack->count--;
 
                 if (AS_BOOL(word)) {
-                    vm->ip += 2;
+                    vm->ip += 5;
                 } else {
-                    uint8_t offset = vm->bytecode->items[vm->ip+1];
-                    vm->ip += offset;
+                    size_t operand = (((size_t) vm->bytecode->items[vm->ip+1]) << 24) |
+                                    (((size_t) vm->bytecode->items[vm->ip+2]) << 16) |
+                                    (((size_t) vm->bytecode->items[vm->ip+3]) << 8) |
+                                    (((size_t) vm->bytecode->items[vm->ip+4]));
+                    vm->ip += operand;
                 }
             } break;
         }

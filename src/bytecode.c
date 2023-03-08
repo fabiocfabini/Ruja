@@ -50,6 +50,28 @@ void add_opcode(Bytecode* bytecode, uint8_t byte, size_t line) {
     bytecode->lines[bytecode->count++] = line;
 }
 
+void add_operand(Bytecode* bytecode, size_t bytes, size_t line) {
+    if (bytecode->count + 4 >= bytecode->capacity) {
+        REALLOC_DA(uint8_t, bytecode);
+        bytecode->lines = realloc(bytecode->lines, sizeof(size_t) * bytecode->capacity);
+    }
+
+    bytecode->items[bytecode->count] = (bytes >> 24) & 0xFF;
+    bytecode->items[bytecode->count+1] = (bytes >> 16) & 0xFF;
+    bytecode->items[bytecode->count+2] = (bytes >> 8) & 0xFF;
+    bytecode->items[bytecode->count+3] = bytes & 0xFF;
+    bytecode->lines[bytecode->count] = line;
+    bytecode->lines[bytecode->count+1] = line;
+    bytecode->lines[bytecode->count+2] = line;
+    bytecode->lines[bytecode->count+3] = line;
+    bytecode->count += 4;
+}
+
+void print_operand(Bytecode* bytecode, size_t index, int format) {
+    size_t operand = (bytecode->items[index] << 24) | (bytecode->items[index+1] << 16) | (bytecode->items[index+2] << 8) | bytecode->items[index+3];
+    printf("%*ld", format, operand);
+}
+
 /**
  * @brief Disassembles a bytecode intruction into a human readable format
  * 
@@ -80,18 +102,22 @@ static void disassemble_instruction(Bytecode* bytecode, size_t* index) {
         case OP_OR      : printf("%14s |%14s |", "OR", "-----"); break;
         case OP_JUMP    : {
             printf("%14s |", "JUMP");
-            printf("%14d", bytecode->items[++(*index)]);
+            print_operand(bytecode, ++(*index), 14); *index += 3;
             printf(" |");
         } break;
         case OP_JZ      : {
             printf("%14s |", "JZ");
-            printf("%14d", bytecode->items[++(*index)]);
+            print_operand(bytecode, ++(*index), 14); *index += 3;
             printf(" |");
         } break;
         case OP_CONST: {
             // printf("%14s |%14lf |", "CONST", bytecode->items[bytecode->items[++(*index)]]); break;
             printf("%14s |", "CONST");
-            print_word(stdout, bytecode->constant_words->items[bytecode->items[++(*index)]], 14);
+            size_t constant_index = (bytecode->items[*index+1] << 24) |
+                                    (bytecode->items[*index+2] << 16) | 
+                                    (bytecode->items[*index+3] <<  8) | 
+                                    bytecode->items[*index+4];
+            print_word(stdout, bytecode->constant_words->items[constant_index], 14); *index += 4;
             printf(" |");
         } break;
     }
