@@ -78,12 +78,22 @@ static void disassemble_instruction(Bytecode* bytecode, size_t* index) {
         case OP_GTE_F64 : printf("%14s |%14s |", "GTE_F64", "-----"); break;
         case OP_AND     : printf("%14s |%14s |", "AND", "-----"); break;
         case OP_OR      : printf("%14s |%14s |", "OR", "-----"); break;
+        case OP_JUMP    : {
+            printf("%14s |", "JUMP");
+            printf("%14d", bytecode->items[++(*index)]);
+            printf(" |");
+        } break;
+        case OP_JZ      : {
+            printf("%14s |", "JZ");
+            printf("%14d", bytecode->items[++(*index)]);
+            printf(" |");
+        } break;
         case OP_CONST: {
-            // printf("%14s |%14lf |", "CONST", bytecode->constant_words->items[bytecode->items[++(*index)]]); break;
+            // printf("%14s |%14lf |", "CONST", bytecode->items[bytecode->items[++(*index)]]); break;
             printf("%14s |", "CONST");
             print_word(stdout, bytecode->constant_words->items[bytecode->items[++(*index)]], 14);
             printf(" |");
-        }
+        } break;
     }
 }
 
@@ -108,6 +118,8 @@ const char* opcode_to_string(Opcode opcode) {
         case OP_GTE_F64 : return "GTE_F64";
         case OP_AND     : return "AND";
         case OP_OR      : return "OR";
+        case OP_JUMP    : return "JUMP";
+        case OP_JZ      : return "JZ";
         case OP_CONST   : return "CONST";
     }
 }

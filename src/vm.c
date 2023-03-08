@@ -48,6 +48,7 @@ Ruja_Vm_Status vm_run(Ruja_Vm *vm) {
 
         #if 1
 
+        printf("%10s ", opcode_to_string(vm->bytecode->items[vm->ip]));
         stack_trace(vm->stack);
 
         #endif
@@ -267,9 +268,26 @@ Ruja_Vm_Status vm_run(Ruja_Vm *vm) {
                 vm->stack->count--;
                 vm->ip++;
             } break;
+            case OP_JUMP: {
+                uint8_t offset = vm->bytecode->items[vm->ip+1];
+                vm->ip += offset;
+            } break;
+            case OP_JZ: {
+                if (vm->stack->count < 1) {
+                    fprintf(stderr, "Stack underflow at ip=%"PRIu64"\n", vm->ip);
+                    return RUJA_VM_ERROR;
+                }
+
+                Word word = vm->stack->items[vm->stack->count-1];
+                vm->stack->count--;
+
+                if (AS_BOOL(word)) {
+                    vm->ip += 2;
+                } else {
+                    uint8_t offset = vm->bytecode->items[vm->ip+1];
+                    vm->ip += offset;
+                }
+            } break;
         }
     }
-
-#undef BINARY_OP
-#undef COMPARISON_OP
 }

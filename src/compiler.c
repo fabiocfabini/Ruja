@@ -85,8 +85,26 @@ static Ruja_Compile_Error compile_internal(Ruja_Ast ast, Bytecode* bytecode) {
             }
         } break;
         case AST_NODE_TERNARY_OP: {
-            NOT_IMPLEMENTED("Ternary operator", __FILE__, __LINE__);
-            return RUJA_COMPILER_ERROR;
+            Ruja_Compile_Error error = compile_internal(ast->as.ternary_op.condition, bytecode);
+            if (error != RUJA_COMPILER_OK) return error;
+
+            add_opcode(bytecode, OP_JZ, 0);
+            size_t jmp_false = bytecode->count;
+            add_opcode(bytecode, 0, 0);
+
+            error = compile_internal(ast->as.ternary_op.true_expression, bytecode);
+            if (error != RUJA_COMPILER_OK) return error;
+
+            add_opcode(bytecode, OP_JUMP, 0);
+            size_t jmp = bytecode->count;
+            add_opcode(bytecode, 0, 0);
+
+            bytecode->items[jmp_false] = jmp - jmp_false + 2;
+
+            error = compile_internal(ast->as.ternary_op.false_expression, bytecode);
+            if (error != RUJA_COMPILER_OK) return error;
+
+            bytecode->items[jmp] = bytecode->count - jmp + 1;
         } break;
         case AST_NODE_EXPRESSION: {
             Ruja_Compile_Error error = compile_internal(ast->as.expr.expression, bytecode);

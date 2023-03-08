@@ -66,16 +66,16 @@ int main() {
 int main() {
     Ruja_Vm* vm = vm_new();
 
-    size_t index1 = add_constant(vm->bytecode, MAKE_DOUBLE(0.0));
-    size_t index2 = add_constant(vm->bytecode, MAKE_DOUBLE(0));
-    add_opcode(vm->bytecode, OP_CONST, 1);
-    add_opcode(vm->bytecode, (uint8_t) index1, 1);
-    add_opcode(vm->bytecode, OP_NOT, 1);
-    add_opcode(vm->bytecode, OP_TRUE, 1);
-    add_opcode(vm->bytecode, OP_NIL, 1);
-    add_opcode(vm->bytecode, OP_CONST, 1);
-    add_opcode(vm->bytecode, (uint8_t) index2, 1);
-    add_opcode(vm->bytecode, OP_AND, 1);
+    size_t index1 = add_constant(vm->bytecode, MAKE_INT(0));
+    size_t index2 = add_constant(vm->bytecode, MAKE_INT(8));
+    add_opcode(vm->bytecode, OP_CONST, 2);
+    add_opcode(vm->bytecode, index1, 2);
+    add_opcode(vm->bytecode, OP_CONST, 2);
+    add_opcode(vm->bytecode, index1, 2);
+    add_opcode(vm->bytecode, OP_JZ, 2);
+    add_opcode(vm->bytecode, index2, 2);
+    add_opcode(vm->bytecode, OP_NEG, 2);
+    add_opcode(vm->bytecode, OP_NOT, 2);
     add_opcode(vm->bytecode, OP_HALT, 2);
 
     vm_run(vm);
@@ -107,7 +107,7 @@ int main(void) {
 }
 #endif
 
-#if 0 // Parser test
+#if 1 // Parser test
 int main(int argc, char** argv) {
     if (argc < 2) {
         usage(); return 1;
@@ -173,12 +173,13 @@ int main() {
 }
 #endif
 
-#if 1 // Compiler test
+#if 0 // Compiler test
 int main(void) {
     Ruja_Compiler* compiler = compiler_new();
     Ruja_Vm* vm = vm_new();
 
     if (compile(compiler, "input.ruja", vm->bytecode) != RUJA_COMPILER_ERROR) {
+        // disassemble(vm->bytecode, "code");
         vm_run(vm);
     }
 

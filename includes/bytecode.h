@@ -29,6 +29,9 @@ typedef enum {
     OP_AND,
     OP_OR,
 
+    OP_JUMP,
+    OP_JZ,
+
     OP_CONST,
 } Opcode;
 

@@ -36,7 +36,7 @@ typedef uint64_t Word;
 
 // Gets
 #define AS_CHAR(x)  ((char) ((x) & MASK_VALUE))
-#define AS_BOOL(x)  ((bool) ((x) & MASK_VALUE))
+#define AS_BOOL(x)  as_bool(x)
 #define AS_INT(x)   ((int32_t) ((x) & MASK_VALUE)) 
 #define AS_DOUBLE(x) word_to_double(x)
 
@@ -56,6 +56,13 @@ static inline double word_to_double(Word value) {
     } data;
     data.bits = value;
     return data.num;
+}
+
+static inline Word as_bool(Word value) {
+    if(IS_DOUBLE(value)) {
+        return AS_DOUBLE(value) != 0.0;
+    }
+    return (bool) ((value) & MASK_VALUE);
 }
 
 void print_word(FILE* stream, Word w, int width);
