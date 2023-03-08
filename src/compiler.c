@@ -13,7 +13,7 @@ Ruja_Compiler* compiler_new() {
         return NULL;
     }
 
-    compiler->ast = ast_new();
+    compiler->ast = ast_new_expression(NULL);
 
     return compiler;
 }

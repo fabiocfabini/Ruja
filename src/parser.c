@@ -483,7 +483,6 @@ bool parse(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
         fprintf(stderr, "Null AST passed to parser\n");
         return false;
     }
-    (*ast)->type = AST_NODE_EXPRESSION;
     expression(parser, lexer, &(*ast)->as.expr.expression);
     expect(parser, lexer, RUJA_TOK_EOF, "Expected end of file");
 
