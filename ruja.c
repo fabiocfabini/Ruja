@@ -85,7 +85,7 @@ int main() {
 }
 #endif
 
-#if 1 // Lexer test
+#if 0 // Lexer test
 int main(void) {
     Ruja_Lexer* lexer = lexer_new("tokens.ruja");
     if (lexer != NULL) {
@@ -107,7 +107,7 @@ int main(void) {
 }
 #endif
 
-#if 0 // Parser test
+#if 1 // Parser test
 int main(int argc, char** argv) {
     if (argc < 2) {
         usage(); return 1;

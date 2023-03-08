@@ -59,35 +59,25 @@ void add_opcode(Bytecode* bytecode, uint8_t byte, size_t line) {
 static void disassemble_instruction(Bytecode* bytecode, size_t* index) {
     Opcode opcode = bytecode->items[*index];
     switch (opcode) {
-        default:       printf("%14s |%14s |", "Unknown", "-----"); break;
-        case OP_HALT:  printf("%14s |%14s |", "HALT", "-----"); break;
-        case OP_NIL:   printf("%14s |%14s |", "NIL", "-----"); break;
-        case OP_TRUE:  printf("%14s |%14s |", "TRUE", "-----"); break;
-        case OP_FALSE: printf("%14s |%14s |", "FALSE", "-----"); break;
-        case OP_NEG:   printf("%14s |%14s |", "NEG", "-----"); break;
-        case OP_NOT:   printf("%14s |%14s |", "NOT", "-----"); break;
-        case OP_ADD_F64:   printf("%14s |%14s |", "ADD_F64", "-----"); break;
-        case OP_ADD_I32:   printf("%14s |%14s |", "ADD_I32", "-----"); break;
-        case OP_SUB_F64:   printf("%14s |%14s |", "SUB_F64", "-----"); break;
-        case OP_SUB_I32:   printf("%14s |%14s |", "SUB_I32", "-----"); break;
-        case OP_MUL_F64:   printf("%14s |%14s |", "MUL_F64", "-----"); break;
-        case OP_MUL_I32:   printf("%14s |%14s |", "MUL_I32", "-----"); break;
-        case OP_DIV_F64:   printf("%14s |%14s |", "DIV_F64", "-----"); break;
-        case OP_DIV_I32:   printf("%14s |%14s |", "DIV_I32", "-----"); break;
-        case OP_EQ_F64:    printf("%14s |%14s |", "EQ_F64", "-----"); break;
-        case OP_EQ_I32:    printf("%14s |%14s |", "EQ_I32", "-----"); break;
-        case OP_NEQ_F64:   printf("%14s |%14s |", "NEQ_F64", "-----"); break;
-        case OP_NEQ_I32:   printf("%14s |%14s |", "NEQ_I32", "-----"); break;
-        case OP_LT_F64:    printf("%14s |%14s |", "LT_F64", "-----"); break;
-        case OP_LT_I32:    printf("%14s |%14s |", "LT_I32", "-----"); break;
-        case OP_LTE_F64:   printf("%14s |%14s |", "LTE_F64", "-----"); break;
-        case OP_LTE_I32:   printf("%14s |%14s |", "LTE_I32", "-----"); break;
-        case OP_GT_F64:    printf("%14s |%14s |", "GT_F64", "-----"); break;
-        case OP_GT_I32:    printf("%14s |%14s |", "GT_I32", "-----"); break;
-        case OP_GTE_F64:   printf("%14s |%14s |", "GTE_F64", "-----"); break;
-        case OP_GTE_I32:   printf("%14s |%14s |", "GTE_I32", "-----"); break;
-        case OP_AND:   printf("%14s |%14s |", "AND", "-----"); break;
-        case OP_OR:    printf("%14s |%14s |", "OR", "-----"); break;
+        default         : printf("%14s |%14s |", "Unknown", "-----"); break;
+        case OP_HALT    : printf("%14s |%14s |", "HALT", "-----"); break;
+        case OP_NIL     : printf("%14s |%14s |", "NIL", "-----"); break;
+        case OP_TRUE    : printf("%14s |%14s |", "TRUE", "-----"); break;
+        case OP_FALSE   : printf("%14s |%14s |", "FALSE", "-----"); break;
+        case OP_NEG     : printf("%14s |%14s |", "NEG", "-----"); break;
+        case OP_NOT     : printf("%14s |%14s |", "NOT", "-----"); break;
+        case OP_ADD_F64 : printf("%14s |%14s |", "ADD_F64", "-----"); break;
+        case OP_SUB_F64 : printf("%14s |%14s |", "SUB_F64", "-----"); break;
+        case OP_MUL_F64 : printf("%14s |%14s |", "MUL_F64", "-----"); break;
+        case OP_DIV_F64 : printf("%14s |%14s |", "DIV_F64", "-----"); break;
+        case OP_EQ_F64  : printf("%14s |%14s |", "EQ_F64", "-----"); break;
+        case OP_NEQ_F64 : printf("%14s |%14s |", "NEQ_F64", "-----"); break;
+        case OP_LT_F64  : printf("%14s |%14s |", "LT_F64", "-----"); break;
+        case OP_LTE_F64 : printf("%14s |%14s |", "LTE_F64", "-----"); break;
+        case OP_GT_F64  : printf("%14s |%14s |", "GT_F64", "-----"); break;
+        case OP_GTE_F64 : printf("%14s |%14s |", "GTE_F64", "-----"); break;
+        case OP_AND     : printf("%14s |%14s |", "AND", "-----"); break;
+        case OP_OR      : printf("%14s |%14s |", "OR", "-----"); break;
         case OP_CONST: {
             // printf("%14s |%14lf |", "CONST", bytecode->constant_words->items[bytecode->items[++(*index)]]); break;
             printf("%14s |", "CONST");
@@ -99,36 +89,26 @@ static void disassemble_instruction(Bytecode* bytecode, size_t* index) {
 
 const char* opcode_to_string(Opcode opcode) {
     switch (opcode) {
-        default:       return "Unknown";
-        case OP_HALT:  return "HALT";
-        case OP_NIL:   return "NIL";
-        case OP_TRUE:  return "TRUE";
-        case OP_FALSE: return "FALSE";
-        case OP_NEG:   return "NEG";
-        case OP_NOT:   return "NOT";
-        case OP_ADD_F64:   return "ADD_F64";
-        case OP_ADD_I32:   return "ADD_I32";
-        case OP_SUB_F64:   return "SUB_F64";
-        case OP_SUB_I32:   return "SUB_I32";
-        case OP_MUL_F64:   return "MUL_F64";
-        case OP_MUL_I32:   return "MUL_I32";
-        case OP_DIV_F64:   return "DIV_F64";
-        case OP_DIV_I32:   return "DIV_I32";
-        case OP_EQ_F64:    return "EQ_F64";
-        case OP_EQ_I32:    return "EQ_I32";
-        case OP_NEQ_F64:   return "NEQ_F64";
-        case OP_NEQ_I32:   return "NEQ_I32";
-        case OP_LTE_F64:   return "LTE_F64";
-        case OP_LTE_I32:   return "LTE_I32";
-        case OP_LT_F64:    return "LT_F64";
-        case OP_LT_I32:    return "LT_I32";
-        case OP_GT_F64:    return "GT_F64";
-        case OP_GT_I32:    return "GT_I32";
-        case OP_GTE_F64:   return "GTE_F64";
-        case OP_GTE_I32:   return "GTE_I32";
-        case OP_AND:   return "AND";
-        case OP_OR:    return "OR";
-        case OP_CONST: return "CONST";
+        default         : return "Unknown";
+        case OP_HALT    : return "HALT";
+        case OP_NIL     : return "NIL";
+        case OP_TRUE    : return "TRUE";
+        case OP_FALSE   : return "FALSE";
+        case OP_NEG     : return "NEG";
+        case OP_NOT     : return "NOT";
+        case OP_ADD_F64 : return "ADD_F64";
+        case OP_SUB_F64 : return "SUB_F64";
+        case OP_MUL_F64 : return "MUL_F64";
+        case OP_DIV_F64 : return "DIV_F64";
+        case OP_EQ_F64  : return "EQ_F64";
+        case OP_NEQ_F64 : return "NEQ_F64";
+        case OP_LTE_F64 : return "LTE_F64";
+        case OP_LT_F64  : return "LT_F64";
+        case OP_GT_F64  : return "GT_F64";
+        case OP_GTE_F64 : return "GTE_F64";
+        case OP_AND     : return "AND";
+        case OP_OR      : return "OR";
+        case OP_CONST   : return "CONST";
     }
 }
 

@@ -36,39 +36,6 @@ void vm_free(Ruja_Vm *vm) {
 }
 
 Ruja_Vm_Status vm_run(Ruja_Vm *vm) {
-#define BINARY_OP(type, op) \
-    do { \
-        if (vm->stack->count < 2) { \
-            fprintf(stderr, "Stack underflow at ip=%"PRIu64"\n", vm->ip); \
-            return RUJA_VM_ERROR; \
-        } \
-        Word word1 = vm->stack->items[vm->stack->count-2]; \
-        Word word2 = vm->stack->items[vm->stack->count-1]; \
-        if (!IS_##type(word1) || !IS_##type(word2)) { \
-            fprintf(stderr, "Cannot add non-%s values at ip=%"PRIu64"\n", #type, vm->ip); \
-            return RUJA_VM_ERROR; \
-        } \
-        vm->stack->items[vm->stack->count-2] = MAKE_##type(AS_##type(word1) op AS_##type(word2)); \
-        vm->stack->count--; \
-        vm->ip++; \
-    } while (0)
-#define COMPARISON_OP(type, op) \
-    do { \
-        if (vm->stack->count < 2) { \
-            fprintf(stderr, "Stack underflow at ip=%"PRIu64"\n", vm->ip); \
-            return RUJA_VM_ERROR; \
-        } \
-        Word word1 = vm->stack->items[vm->stack->count-2]; \
-        Word word2 = vm->stack->items[vm->stack->count-1]; \
-        if (!IS_##type(word1) || !IS_##type(word2)) { \
-            fprintf(stderr, "Cannot add non-%s values at ip=%"PRIu64"\n", #type, vm->ip); \
-            return RUJA_VM_ERROR; \
-        } \
-        vm->stack->items[vm->stack->count-2] = MAKE_BOOL(AS_##type(word1) op AS_##type(word2)); \
-        vm->stack->count--; \
-        vm->ip++; \
-    } while (0)
-
     #if 1
     disassemble(vm->bytecode, "VM RUN");
     #endif
@@ -117,16 +84,7 @@ Ruja_Vm_Status vm_run(Ruja_Vm *vm) {
                 }
 
                 Word word = vm->stack->items[vm->stack->count-1];
-                if (!IS_DOUBLE(word) && !IS_INT(word)) {
-                    fprintf(stderr, "Cannot negate non-numerical value at ip=%"PRIu64"\n", vm->ip);
-                    return RUJA_VM_ERROR;
-                }
-
-                if (IS_INT(word)) {
-                    vm->stack->items[vm->stack->count-1] = MAKE_INT(-AS_INT(word));
-                } else {
-                    vm->stack->items[vm->stack->count-1] = MAKE_DOUBLE(-(AS_DOUBLE(word)));
-                }
+                vm->stack->items[vm->stack->count-1] = MAKE_DOUBLE(-(AS_DOUBLE(word)));
 
                 vm->ip++;
             } break;
@@ -141,26 +99,146 @@ Ruja_Vm_Status vm_run(Ruja_Vm *vm) {
 
                 vm->ip++;
             } break;
-            case OP_ADD_F64 :     BINARY_OP (DOUBLE, +);  break;
-            case OP_ADD_I32 :     BINARY_OP (INT, +);     break;
-            case OP_SUB_F64 :     BINARY_OP (DOUBLE, -);  break;
-            case OP_SUB_I32 :     BINARY_OP (INT, -);     break;
-            case OP_MUL_F64 :     BINARY_OP (DOUBLE, *);  break;
-            case OP_MUL_I32 :     BINARY_OP (INT, *);     break;
-            case OP_DIV_F64 :     BINARY_OP (DOUBLE, /);  break;
-            case OP_DIV_I32 :     BINARY_OP (INT, /);     break;
-            case OP_EQ_F64  : COMPARISON_OP (DOUBLE, ==); break;
-            case OP_EQ_I32  : COMPARISON_OP (INT, ==);    break;
-            case OP_NEQ_F64 : COMPARISON_OP (DOUBLE, !=); break;
-            case OP_NEQ_I32 : COMPARISON_OP (INT, !=);    break;
-            case OP_LT_F64  : COMPARISON_OP (DOUBLE, <);  break;
-            case OP_LT_I32  : COMPARISON_OP (INT, <);     break;
-            case OP_LTE_F64 : COMPARISON_OP (DOUBLE, <=); break;
-            case OP_LTE_I32 : COMPARISON_OP (INT, <=);    break;
-            case OP_GT_F64  : COMPARISON_OP (DOUBLE, >);  break;
-            case OP_GT_I32  : COMPARISON_OP (INT, >);     break;
-            case OP_GTE_F64 : COMPARISON_OP (DOUBLE, >=); break;
-            case OP_GTE_I32 : COMPARISON_OP (INT, >=);    break;
+            case OP_ADD_F64 : {
+                if (vm->stack->count < 2) {
+                    fprintf(stderr, "Stack underflow at ip=%"PRIu64"\n", vm->ip);
+                    return RUJA_VM_ERROR;
+                }
+
+                Word word1 = vm->stack->items[vm->stack->count-2];
+                Word word2 = vm->stack->items[vm->stack->count-1];
+
+                vm->stack->items[vm->stack->count-2] = MAKE_DOUBLE(AS_DOUBLE(word1) + AS_DOUBLE(word2));
+
+                vm->stack->count--;
+                vm->ip++;
+            } break;
+            case OP_SUB_F64 : {
+                if (vm->stack->count < 2) {
+                    fprintf(stderr, "Stack underflow at ip=%"PRIu64"\n", vm->ip);
+                    return RUJA_VM_ERROR;
+                }
+
+                Word word1 = vm->stack->items[vm->stack->count-2];
+                Word word2 = vm->stack->items[vm->stack->count-1];
+
+                vm->stack->items[vm->stack->count-2] = MAKE_DOUBLE(AS_DOUBLE(word1) - AS_DOUBLE(word2));
+
+                vm->stack->count--;
+                vm->ip++;
+            } break;
+            case OP_MUL_F64 : {
+                if (vm->stack->count < 2) {
+                    fprintf(stderr, "Stack underflow at ip=%"PRIu64"\n", vm->ip);
+                    return RUJA_VM_ERROR;
+                }
+
+                Word word1 = vm->stack->items[vm->stack->count-2];
+                Word word2 = vm->stack->items[vm->stack->count-1];
+
+                vm->stack->items[vm->stack->count-2] = MAKE_DOUBLE(AS_DOUBLE(word1) * AS_DOUBLE(word2));
+
+                vm->stack->count--;
+                vm->ip++;
+            } break;
+            case OP_DIV_F64 : {
+                if (vm->stack->count < 2) {
+                    fprintf(stderr, "Stack underflow at ip=%"PRIu64"\n", vm->ip);
+                    return RUJA_VM_ERROR;
+                }
+
+                Word word1 = vm->stack->items[vm->stack->count-2];
+                Word word2 = vm->stack->items[vm->stack->count-1];
+
+                vm->stack->items[vm->stack->count-2] = MAKE_DOUBLE(AS_DOUBLE(word1) / AS_DOUBLE(word2));
+
+                vm->stack->count--;
+                vm->ip++;
+            } break;
+            case OP_EQ_F64  : {
+                if (vm->stack->count < 2) {
+                    fprintf(stderr, "Stack underflow at ip=%"PRIu64"\n", vm->ip);
+                    return RUJA_VM_ERROR;
+                }
+
+                Word word1 = vm->stack->items[vm->stack->count-2];
+                Word word2 = vm->stack->items[vm->stack->count-1];
+
+                vm->stack->items[vm->stack->count-2] = MAKE_BOOL(AS_DOUBLE(word1) == AS_DOUBLE(word2));
+
+                vm->stack->count--;
+                vm->ip++;
+            } break;
+            case OP_NEQ_F64 : {
+                if (vm->stack->count < 2) {
+                    fprintf(stderr, "Stack underflow at ip=%"PRIu64"\n", vm->ip);
+                    return RUJA_VM_ERROR;
+                }
+
+                Word word1 = vm->stack->items[vm->stack->count-2];
+                Word word2 = vm->stack->items[vm->stack->count-1];
+
+                vm->stack->items[vm->stack->count-2] = MAKE_BOOL(AS_DOUBLE(word1) != AS_DOUBLE(word2));
+
+                vm->stack->count--;
+                vm->ip++;
+            } break;
+            case OP_LT_F64  : {
+                if (vm->stack->count < 2) {
+                    fprintf(stderr, "Stack underflow at ip=%"PRIu64"\n", vm->ip);
+                    return RUJA_VM_ERROR;
+                }
+
+                Word word1 = vm->stack->items[vm->stack->count-2];
+                Word word2 = vm->stack->items[vm->stack->count-1];
+
+                vm->stack->items[vm->stack->count-2] = MAKE_BOOL(AS_DOUBLE(word1) < AS_DOUBLE(word2));
+
+                vm->stack->count--;
+                vm->ip++;
+            } break;
+            case OP_LTE_F64 : {
+                if (vm->stack->count < 2) {
+                    fprintf(stderr, "Stack underflow at ip=%"PRIu64"\n", vm->ip);
+                    return RUJA_VM_ERROR;
+                }
+
+                Word word1 = vm->stack->items[vm->stack->count-2];
+                Word word2 = vm->stack->items[vm->stack->count-1];
+
+                vm->stack->items[vm->stack->count-2] = MAKE_BOOL(AS_DOUBLE(word1) <= AS_DOUBLE(word2));
+
+                vm->stack->count--;
+                vm->ip++;
+            } break;
+            case OP_GT_F64  : {
+                if (vm->stack->count < 2) {
+                    fprintf(stderr, "Stack underflow at ip=%"PRIu64"\n", vm->ip);
+                    return RUJA_VM_ERROR;
+                }
+
+                Word word1 = vm->stack->items[vm->stack->count-2];
+                Word word2 = vm->stack->items[vm->stack->count-1];
+
+                vm->stack->items[vm->stack->count-2] = MAKE_BOOL(AS_DOUBLE(word1) > AS_DOUBLE(word2));
+
+                vm->stack->count--;
+                vm->ip++;
+            } break;
+            case OP_GTE_F64 : {
+                if (vm->stack->count < 2) {
+                    fprintf(stderr, "Stack underflow at ip=%"PRIu64"\n", vm->ip);
+                    return RUJA_VM_ERROR;
+                }
+
+                Word word1 = vm->stack->items[vm->stack->count-2];
+                Word word2 = vm->stack->items[vm->stack->count-1];
+
+                vm->stack->items[vm->stack->count-2] = MAKE_BOOL(AS_DOUBLE(word1) >= AS_DOUBLE(word2));
+
+                vm->stack->count--;
+                vm->ip++;
+            } break;
             case OP_AND: {
                 if (vm->stack->count < 2) {
                     fprintf(stderr, "Stack underflow at ip=%"PRIu64"\n", vm->ip);
