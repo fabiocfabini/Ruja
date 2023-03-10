@@ -313,10 +313,8 @@ static void character(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
  */
 static void string(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
     UNUSED(lexer);
-    UNUSED(parser);
-    UNUSED(ast);
     
-    NOT_IMPLEMENTED("String parsing", __FILE__, __LINE__);
+    (*ast) = ast_new_literal(parser->previous);
 }
 
 /**
