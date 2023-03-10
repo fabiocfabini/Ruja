@@ -67,21 +67,28 @@ int main() {
     Ruja_Vm* vm = vm_new();
 
     Word w1 = MAKE_STRING("Hello,", 6);
-    Word w2 = MAKE_STRING(" World!", 7);
+    Word w2 = MAKE_STRING(" World", 6);
+    Word w3 = MAKE_STRING(" from Portugal!", 15);
 
     size_t index1 = add_constant(vm->bytecode, w1);
     size_t index2 = add_constant(vm->bytecode, w2);
+    size_t index3 = add_constant(vm->bytecode, w3);
 
     add_opcode(vm->bytecode, OP_CONST, 0);
     add_operand(vm->bytecode, index1, 0);
     add_opcode(vm->bytecode, OP_CONST, 0);
     add_operand(vm->bytecode, index2, 0);
+    add_opcode(vm->bytecode, OP_CONST, 0);
+    add_operand(vm->bytecode, index3, 0);
+    add_opcode(vm->bytecode, OP_ADD, 0);
+    add_opcode(vm->bytecode, OP_ADD, 0);
     add_opcode(vm->bytecode, OP_HALT, 0);
 
     vm_run(vm);
 
     object_free(AS_OBJECT(w1));
     object_free(AS_OBJECT(w2));
+    object_free(AS_OBJECT(w3));
     vm_free(vm);
     return 0;
 }

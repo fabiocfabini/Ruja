@@ -33,7 +33,7 @@ void stack_push(Stack* stack, Word word) {
 }
 
 void stack_trace(Stack *stack) {
-    printf("STACK: [ ");
+    printf("STACK[%"PRIu64"]: [ ", stack->count);
     for (size_t i = 0; i < stack->count; i++) {
         print_word(stdout, stack->items[i], 0);
         printf(" ");

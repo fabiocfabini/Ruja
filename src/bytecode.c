@@ -81,43 +81,43 @@ void print_operand(Bytecode* bytecode, size_t index, int format) {
 static void disassemble_instruction(Bytecode* bytecode, size_t* index) {
     Opcode opcode = bytecode->items[*index];
     switch (opcode) {
-        default         : printf("%14s |%14s |", "Unknown", "-----"); break;
-        case OP_HALT    : printf("%14s |%14s |", "HALT", "-----"); break;
-        case OP_NIL     : printf("%14s |%14s |", "NIL", "-----"); break;
-        case OP_TRUE    : printf("%14s |%14s |", "TRUE", "-----"); break;
-        case OP_FALSE   : printf("%14s |%14s |", "FALSE", "-----"); break;
-        case OP_NEG     : printf("%14s |%14s |", "NEG", "-----"); break;
-        case OP_NOT     : printf("%14s |%14s |", "NOT", "-----"); break;
-        case OP_ADD     : printf("%14s |%14s |", "ADD", "-----"); break;
-        case OP_SUB     : printf("%14s |%14s |", "SUB", "-----"); break;
-        case OP_MUL     : printf("%14s |%14s |", "MUL", "-----"); break;
-        case OP_DIV     : printf("%14s |%14s |", "DIV", "-----"); break;
-        case OP_EQ      : printf("%14s |%14s |", "EQ", "-----"); break;
-        case OP_NEQ     : printf("%14s |%14s |", "NEQ", "-----"); break;
-        case OP_LT      : printf("%14s |%14s |", "LT", "-----"); break;
-        case OP_LTE     : printf("%14s |%14s |", "LTE", "-----"); break;
-        case OP_GT      : printf("%14s |%14s |", "GT", "-----"); break;
-        case OP_GTE     : printf("%14s |%14s |", "GTE", "-----"); break;
-        case OP_AND     : printf("%14s |%14s |", "AND", "-----"); break;
-        case OP_OR      : printf("%14s |%14s |", "OR", "-----"); break;
+        default         : printf("%14s |%20s |", "Unknown", "-----"); break;
+        case OP_HALT    : printf("%14s |%20s |", "HALT", "-----"); break;
+        case OP_NIL     : printf("%14s |%20s |", "NIL", "-----"); break;
+        case OP_TRUE    : printf("%14s |%20s |", "TRUE", "-----"); break;
+        case OP_FALSE   : printf("%14s |%20s |", "FALSE", "-----"); break;
+        case OP_NEG     : printf("%14s |%20s |", "NEG", "-----"); break;
+        case OP_NOT     : printf("%14s |%20s |", "NOT", "-----"); break;
+        case OP_ADD     : printf("%14s |%20s |", "ADD", "-----"); break;
+        case OP_SUB     : printf("%14s |%20s |", "SUB", "-----"); break;
+        case OP_MUL     : printf("%14s |%20s |", "MUL", "-----"); break;
+        case OP_DIV     : printf("%14s |%20s |", "DIV", "-----"); break;
+        case OP_EQ      : printf("%14s |%20s |", "EQ", "-----"); break;
+        case OP_NEQ     : printf("%14s |%20s |", "NEQ", "-----"); break;
+        case OP_LT      : printf("%14s |%20s |", "LT", "-----"); break;
+        case OP_LTE     : printf("%14s |%20s |", "LTE", "-----"); break;
+        case OP_GT      : printf("%14s |%20s |", "GT", "-----"); break;
+        case OP_GTE     : printf("%14s |%20s |", "GTE", "-----"); break;
+        case OP_AND     : printf("%14s |%20s |", "AND", "-----"); break;
+        case OP_OR      : printf("%14s |%20s |", "OR", "-----"); break;
         case OP_JUMP    : {
             printf("%14s |", "JUMP");
-            print_operand(bytecode, ++(*index), 14); *index += 3;
+            print_operand(bytecode, ++(*index), 20); *index += 3;
             printf(" |");
         } break;
         case OP_JZ      : {
             printf("%14s |", "JZ");
-            print_operand(bytecode, ++(*index), 14); *index += 3;
+            print_operand(bytecode, ++(*index), 20); *index += 3;
             printf(" |");
         } break;
         case OP_CONST: {
-            // printf("%14s |%14lf |", "CONST", bytecode->items[bytecode->items[++(*index)]]); break;
+            // printf("%20s |%20lf |", "CONST", bytecode->items[bytecode->items[++(*index)]]); break;
             printf("%14s |", "CONST");
             size_t constant_index = (bytecode->items[*index+1] << 24) |
                                     (bytecode->items[*index+2] << 16) | 
                                     (bytecode->items[*index+3] <<  8) | 
                                     bytecode->items[*index+4];
-            print_word(stdout, bytecode->constant_words->items[constant_index], 14); *index += 4;
+            print_word(stdout, bytecode->constant_words->items[constant_index], 20); *index += 4;
             printf(" |");
         } break;
     }
@@ -152,7 +152,7 @@ const char* opcode_to_string(Opcode opcode) {
 
 void disassemble(Bytecode* bytecode, const char* name) {
     printf("---- %s ----\n", name);
-    printf("%5s |%5s |%14s |%14s |\n", "IP", "Line", "Instruction", "Operand");
+    printf("%5s |%5s |%14s |%20s |\n", "IP", "Line", "Instruction", "Operand");
     for (size_t i = 0; i < bytecode->count; i++) {
         printf("%5"PRIu64" |", i);
         if (i == 0 || bytecode->lines[i] != bytecode->lines[i-1]) printf("%5"PRIu64" |", bytecode->lines[i]);
