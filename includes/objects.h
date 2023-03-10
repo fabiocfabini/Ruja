@@ -23,6 +23,6 @@ typedef struct {
 Object* object_new(object_type type, ...);
 void object_free(Object* obj);
 
-void print_object(FILE* stream, Object* obj);
+void print_object(FILE* stream, Object* obj, int width);
 
 #endif // RUJA_OBJECTS_H

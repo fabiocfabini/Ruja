@@ -62,24 +62,26 @@ int main() {
 }
 #endif
 
-#if 0 // Bytecode test
+#if 1 // Bytecode test
 int main() {
     Ruja_Vm* vm = vm_new();
 
-    size_t index1 = add_constant(vm->bytecode, MAKE_INT(0));
-    size_t index2 = add_constant(vm->bytecode, MAKE_INT(8));
-    add_opcode(vm->bytecode, OP_CONST, 2);
-    add_operand(vm->bytecode, index1, 2);
-    add_opcode(vm->bytecode, OP_CONST, 2);
-    add_operand(vm->bytecode, index1, 2);
-    add_opcode(vm->bytecode, OP_JZ, 2);
-    add_operand(vm->bytecode, index2, 2);
-    add_opcode(vm->bytecode, OP_NEG, 2);
-    add_opcode(vm->bytecode, OP_NOT, 2);
-    add_opcode(vm->bytecode, OP_HALT, 2);
+    Word w1 = MAKE_STRING("Hello,", 6);
+    Word w2 = MAKE_STRING(" World!", 7);
+
+    size_t index1 = add_constant(vm->bytecode, w1);
+    size_t index2 = add_constant(vm->bytecode, w2);
+
+    add_opcode(vm->bytecode, OP_CONST, 0);
+    add_operand(vm->bytecode, index1, 0);
+    add_opcode(vm->bytecode, OP_CONST, 0);
+    add_operand(vm->bytecode, index2, 0);
+    add_opcode(vm->bytecode, OP_HALT, 0);
 
     vm_run(vm);
 
+    object_free(AS_OBJECT(w1));
+    object_free(AS_OBJECT(w2));
     vm_free(vm);
     return 0;
 }
@@ -175,7 +177,7 @@ int main() {
 }
 #endif
 
-#if 1 // Compiler test
+#if 0 // Compiler test
 int main(void) {
     Ruja_Compiler* compiler = compiler_new();
     Ruja_Vm* vm = vm_new();

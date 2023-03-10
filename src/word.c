@@ -23,7 +23,7 @@ void print_word(FILE* stream, Word w, int width) {
             fprintf(stream, "%*c", width, AS_CHAR(w));
             break;
         case TYPE_OBJ:
-            print_object(stream, AS_OBJECT(w));
+            print_object(stream, AS_OBJECT(w), width);
             break;
         default:
             if (IS_DOUBLE(w))

@@ -5,10 +5,10 @@
 
 #include "../includes/objects.h"
 
-void print_object(FILE* stream, Object* obj) {
+void print_object(FILE* stream, Object* obj, int width) {
     switch (obj->type) {
         case OBJ_STRING:
-            fprintf(stream, "%s", ((ObjString*)obj)->chars);
+            fprintf(stream, "%*s", width, ((ObjString*)obj)->chars);
             break;
         default:
             fprintf(stream, "???");
