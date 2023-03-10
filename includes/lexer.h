@@ -45,6 +45,8 @@ typedef struct {
     size_t line;
 } Ruja_Token;
 
+Ruja_Token* token_new(Ruja_Token_Kind kind, const char *start, size_t length, size_t line);
+void token_free(Ruja_Token *token);
 void token_to_string(Ruja_Token* token);
 
 typedef struct {
@@ -57,6 +59,6 @@ typedef struct {
 
 Ruja_Lexer* lexer_new(const char* filepath);
 void lexer_free(Ruja_Lexer *lexer);
-Ruja_Token next_token(Ruja_Lexer *lexer);
+Ruja_Token* next_token(Ruja_Lexer *lexer);
 
 #endif // RUJA_LEXER_H

@@ -193,18 +193,18 @@ static Ruja_Token_Kind id_v_keyword(Ruja_Lexer* lexer) {
  * @param lexer The lexer to get the next token of.
  * @return Ruja_Token The next token of the lexer.
  */
-static Ruja_Token tok_identifier(Ruja_Lexer *lexer) {
+static Ruja_Token* tok_identifier(Ruja_Lexer *lexer) {
     // At this point we know that the first character is a letter or an underscore
     while (isalnum(peek(lexer)) || peek(lexer) == '_') {
         advance(lexer);
     }
 
-    Ruja_Token result = {
-        .kind = id_v_keyword(lexer),
-        .start = lexer->start,
-        .length = (size_t) (lexer->current - lexer->start),
-        .line = lexer->line
-    };
+    Ruja_Token* result = token_new(
+        id_v_keyword(lexer),
+        lexer->start,
+        (size_t) (lexer->current - lexer->start),
+        lexer->line
+    );
 
     rebase(lexer);
     return result;
@@ -216,7 +216,7 @@ static Ruja_Token tok_identifier(Ruja_Lexer *lexer) {
  * @param lexer The lexer to get the next token of.
  * @return Ruja_Token The next token of the lexer.
  */
-static Ruja_Token tok_number(Ruja_Lexer* lexer) {
+static Ruja_Token* tok_number(Ruja_Lexer* lexer) {
     while (isdigit(peek(lexer))) advance(lexer);
 
     // Look for a fractional part
@@ -226,23 +226,23 @@ static Ruja_Token tok_number(Ruja_Lexer* lexer) {
 
         while (isdigit(peek(lexer))) advance(lexer);
 
-        Ruja_Token result = {
-            .kind = RUJA_TOK_FLOAT,
-            .start = lexer->start,
-            .length = (size_t) (lexer->current - lexer->start),
-            .line = lexer->line
-        };
+        Ruja_Token* result = token_new(
+            RUJA_TOK_FLOAT,
+            lexer->start,
+            (size_t) (lexer->current - lexer->start),
+            lexer->line
+        );
 
         rebase(lexer);
         return result;
     }
 
-    Ruja_Token result = {
-        .kind = RUJA_TOK_INT,
-        .start = lexer->start,
-        .length = (size_t) (lexer->current - lexer->start),
-        .line = lexer->line
-    };
+    Ruja_Token* result = token_new(
+        RUJA_TOK_INT,
+        lexer->start,
+        (size_t) (lexer->current - lexer->start),
+        lexer->line
+    );
 
     rebase(lexer);
     return result;
@@ -375,6 +375,25 @@ void token_to_string(Ruja_Token* token) {
     printf("Ruja_Token(%s,%.*s,%"PRIu64")\n", token_kind_to_string(token->kind), (int) token->length, token->start, token->line);
 }
 
+Ruja_Token* token_new(Ruja_Token_Kind kind, const char *start, size_t length, size_t line) {
+    Ruja_Token* token = malloc(sizeof(Ruja_Token));
+    if (token == NULL) {
+        fprintf(stderr, "Could not allocate memory for token\n");
+        return NULL;
+    }
+
+    token->kind = kind;
+    token->start = start;
+    token->length = length;
+    token->line = line;
+
+    return token;
+}
+
+void token_free(Ruja_Token *token) {
+    free(token);
+}
+
 Ruja_Lexer* lexer_new(const char* filepath) {
     char* content = read_file(filepath);
     if (content == NULL) return NULL;
@@ -400,7 +419,8 @@ void lexer_free(Ruja_Lexer *lexer) {
     free(lexer);
 }
 
-Ruja_Token next_token(Ruja_Lexer *lexer) {
+
+Ruja_Token* next_token(Ruja_Lexer *lexer) {
     skip_whitespace(lexer);
 
     if(isalpha(peek(lexer)) || peek(lexer) == '_')
@@ -409,103 +429,98 @@ Ruja_Token next_token(Ruja_Lexer *lexer) {
     if(isdigit(peek(lexer)))
         return tok_number(lexer);
 
-    Ruja_Token result = {
-        .kind = RUJA_TOK_ERR,
-        .start = lexer->start,
-        .length = 1,
-        .line = lexer->line
-    };
+    Ruja_Token* result = token_new(RUJA_TOK_ERR, lexer->start, 1, lexer->line);
 
     switch (peek(lexer)) {
-        case '(' : { advance(lexer); result.kind = RUJA_TOK_LPAREN; } break;
-        case ')' : { advance(lexer); result.kind = RUJA_TOK_RPAREN; } break;
-        case '{' : { advance(lexer); result.kind = RUJA_TOK_LBRACE; } break;
-        case '}' : { advance(lexer); result.kind = RUJA_TOK_RBRACE; } break;
-        case '[' : { advance(lexer); result.kind = RUJA_TOK_LBRACKET; } break;
-        case ']' : { advance(lexer); result.kind = RUJA_TOK_RBRACKET; } break;
-        case ':' : { advance(lexer); result.kind = RUJA_TOK_COLON; } break;
-        case ';' : { advance(lexer); result.kind = RUJA_TOK_SEMICOLON; } break;
-        case ',' : { advance(lexer); result.kind = RUJA_TOK_COMMA; } break;
-        case '.' : { advance(lexer); result.kind = RUJA_TOK_DOT; } break;
-        case '?' : { advance(lexer); result.kind = RUJA_TOK_QUESTION; } break;
+        case '(' : { advance(lexer); result->kind = RUJA_TOK_LPAREN; } break;
+        case ')' : { advance(lexer); result->kind = RUJA_TOK_RPAREN; } break;
+        case '{' : { advance(lexer); result->kind = RUJA_TOK_LBRACE; } break;
+        case '}' : { advance(lexer); result->kind = RUJA_TOK_RBRACE; } break;
+        case '[' : { advance(lexer); result->kind = RUJA_TOK_LBRACKET; } break;
+        case ']' : { advance(lexer); result->kind = RUJA_TOK_RBRACKET; } break;
+        case ':' : { advance(lexer); result->kind = RUJA_TOK_COLON; } break;
+        case ';' : { advance(lexer); result->kind = RUJA_TOK_SEMICOLON; } break;
+        case ',' : { advance(lexer); result->kind = RUJA_TOK_COMMA; } break;
+        case '.' : { advance(lexer); result->kind = RUJA_TOK_DOT; } break;
+        case '?' : { advance(lexer); result->kind = RUJA_TOK_QUESTION; } break;
         case '=' : {
             advance(lexer);
             switch (peek(lexer)) {
-                case '=' : { advance(lexer); result.kind = RUJA_TOK_EQ; result.length = 2;} break;
-                default  : { result.kind = RUJA_TOK_ASSIGN; } break;
+                case '=' : { advance(lexer); result->kind = RUJA_TOK_EQ; result->length = 2;} break;
+                default  : { result->kind = RUJA_TOK_ASSIGN; } break;
             }
         } break;
         case '<' : {
             advance(lexer);
             switch (peek(lexer)) {
-                case '=' : { advance(lexer); result.kind = RUJA_TOK_LE; result.length = 2; } break;
-                default  : { result.kind = RUJA_TOK_LT; } break;
+                case '=' : { advance(lexer); result->kind = RUJA_TOK_LE; result->length = 2; } break;
+                default  : { result->kind = RUJA_TOK_LT; } break;
             }
         } break;
         case '>' : {
             advance(lexer);
             switch (peek(lexer)) {
-                case '=' : { advance(lexer); result.kind = RUJA_TOK_GE; result.length = 2; } break;
-                default  : { result.kind = RUJA_TOK_GT; } break;
+                case '=' : { advance(lexer); result->kind = RUJA_TOK_GE; result->length = 2; } break;
+                default  : { result->kind = RUJA_TOK_GT; } break;
             }
         } break;
         case '+' : {
             advance(lexer);
             switch (peek(lexer)) {
-                case '=' : { advance(lexer); result.kind = RUJA_TOK_ADD_EQ; result.length = 2; } break;
-                default  : { result.kind = RUJA_TOK_ADD; } break;
+                case '=' : { advance(lexer); result->kind = RUJA_TOK_ADD_EQ; result->length = 2; } break;
+                default  : { result->kind = RUJA_TOK_ADD; } break;
             }
         } break;
         case '-' : {
             advance(lexer);
             switch (peek(lexer)) {
-                case '=' : { advance(lexer); result.kind = RUJA_TOK_SUB_EQ; result.length = 2; } break;
-                case '>' : { advance(lexer); result.kind = RUJA_TOK_ARROW; result.length = 2; } break;
-                default  : { result.kind = RUJA_TOK_SUB;} break;
+                case '=' : { advance(lexer); result->kind = RUJA_TOK_SUB_EQ; result->length = 2; } break;
+                case '>' : { advance(lexer); result->kind = RUJA_TOK_ARROW; result->length = 2; } break;
+                default  : { result->kind = RUJA_TOK_SUB;} break;
             }
         } break;
         case '*' : {
             advance(lexer);
             switch (peek(lexer)) {
-                case '=' : { advance(lexer); result.kind = RUJA_TOK_MUL_EQ; result.length = 2; } break;
-                default  : { result.kind = RUJA_TOK_MUL; } break;
+                case '=' : { advance(lexer); result->kind = RUJA_TOK_MUL_EQ; result->length = 2; } break;
+                default  : { result->kind = RUJA_TOK_MUL; } break;
             }
         } break;
         case '/' : {
             advance(lexer);
             switch (peek(lexer)) {
-                case '=' : { advance(lexer); result.kind = RUJA_TOK_DIV_EQ; result.length = 2; } break;
-                default  : { result.kind = RUJA_TOK_DIV; } break;
+                case '=' : { advance(lexer); result->kind = RUJA_TOK_DIV_EQ; result->length = 2; } break;
+                default  : { result->kind = RUJA_TOK_DIV; } break;
             }
         } break;
         case '%' : {
             advance(lexer);
             switch (peek(lexer)) {
-                case '=' : { advance(lexer); result.kind = RUJA_TOK_PERCENT_EQ; result.length = 2; } break;
-                default  : { result.kind = RUJA_TOK_PERCENT; } break;
+                case '=' : { advance(lexer); result->kind = RUJA_TOK_PERCENT_EQ; result->length = 2; } break;
+                default  : { result->kind = RUJA_TOK_PERCENT; } break;
             }
         } break;
         case '!' : {
             advance(lexer);
             switch (peek(lexer)) {
-                case '=' : { advance(lexer); result.kind = RUJA_TOK_NE; result.length = 2; } break;
-                default  : { err_lexer(lexer, &result, "Unrecognized token"); } break;
+                case '=' : { advance(lexer); result->kind = RUJA_TOK_NE; result->length = 2; } break;
+                default  : { err_lexer(lexer, result, "Unrecognized token"); } break;
             }
         } break;
         case '\'': {
             advance(lexer);
-            result.kind = RUJA_TOK_CHAR;
-            result.start = lexer->current;
+            result->kind = RUJA_TOK_CHAR;
+            result->start = lexer->current;
             size_t len = 0;
             while (peek(lexer) != '\'' && peek(lexer) != '\0') {
                 if (peek(lexer) == '\n') lexer->line++;
                 advance(lexer);
                 len++;
             }
-            result.length = lexer->current - result.start;
-            if (peek(lexer) == '\0') err_lexer(lexer, &result, "Unterminated character");
+            result->length = lexer->current - result->start;
+            if (peek(lexer) == '\0') err_lexer(lexer, result, "Unterminated character");
             else if (len > 1) {
-                err_lexer(lexer, &result, "Character literal too long");
+                err_lexer(lexer, result, "Character literal too long");
                 while (len + 1 > 1) {
                     advance(lexer);
                     len--;
@@ -515,18 +530,18 @@ Ruja_Token next_token(Ruja_Lexer *lexer) {
         } break;
         case '"': {
             advance(lexer);
-            result.kind = RUJA_TOK_STRING;
-            result.start = lexer->current;
+            result->kind = RUJA_TOK_STRING;
+            result->start = lexer->current;
             while (peek(lexer) != '"' && peek(lexer) != '\0') {
                 if (peek(lexer) == '\n') lexer->line++;
                 advance(lexer);
             }
-            result.length = lexer->current - result.start;
-            if (peek(lexer) == '\0') err_lexer(lexer, &result, "Unterminated string");
+            result->length = lexer->current - result->start;
+            if (peek(lexer) == '\0') err_lexer(lexer, result, "Unterminated string");
             else advance(lexer);
         } break;
-        case '\0': { result.kind = RUJA_TOK_EOF; result.length = 0; } break;
-        default: { err_lexer(lexer, &result, "Unrecognized token"); advance(lexer);} break;
+        case '\0': { result->kind = RUJA_TOK_EOF; result->length = 0; } break;
+        default: { err_lexer(lexer, result, "Unrecognized token"); advance(lexer);} break;
     }
 
     rebase(lexer);
