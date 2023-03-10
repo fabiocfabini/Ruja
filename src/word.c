@@ -21,6 +21,9 @@ void print_word(FILE* stream, Word w, int width) {
         case TYPE_CHAR:
             fprintf(stream, "%*c", width, AS_CHAR(w));
             break;
+        case TYPE_STR:
+            fprintf(stream, "STRING");
+            break;
         default:
             if (IS_DOUBLE(w))
                 fprintf(stream, "%*lf", width, AS_DOUBLE(w));

@@ -53,10 +53,10 @@ int main() {
 }
 #endif
 
-#if 0 // Nan Box test
+#if 1 // Nan Box test
 int main() {
-    Word w = MAKE_INT(-1);
-    print_word(w, 0);
+    Word w = MAKE_STRING();
+    print_word(stdout, w, 0);
     printf("\n");
     return 0;
 }
@@ -175,7 +175,7 @@ int main() {
 }
 #endif
 
-#if 1 // Compiler test
+#if 0 // Compiler test
 int main(void) {
     Ruja_Compiler* compiler = compiler_new();
     Ruja_Vm* vm = vm_new();

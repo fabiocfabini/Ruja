@@ -8,14 +8,16 @@
 typedef uint64_t Word;
 
 // Types
-#define TYPE_NAN   0x7FF8000000000000
-#define TYPE_NIL   0x7FF9000000000000
-#define TYPE_BOOL  0x7FFA000000000000
-#define TYPE_CHAR  0x7FFB000000000000
-#define TYPE_INT   0x7FFC000000000000
+#define TYPE_NAN   0x7FF8000000000000 // 0...000
+#define TYPE_NIL   0x7FF9000000000000 // 0...001
+#define TYPE_BOOL  0x7FFA000000000000 // 0...010
+#define TYPE_CHAR  0x7FFB000000000000 // 0...011
+#define TYPE_INT   0x7FFC000000000000 // 0...100
+#define TYPE_STR   0x8FF8000000000000 // 1...001
 
 // Mask
-#define MASK_TYPE  0x7FFF000000000000
+#define MASK_SIGN  0x8000000000000000
+#define MASK_TYPE  0xFFFF000000000000
 #define MASK_VALUE 0x0000FFFFFFFFFFFF
 #define TYPE(x)    ((x) & MASK_TYPE)
 #define VALUE(x)   ((x) & MASK_VALUE)
@@ -27,14 +29,16 @@ typedef uint64_t Word;
 #define IS_CHAR(x)  (((x) & MASK_TYPE) == TYPE_CHAR)
 #define IS_INT(x)   (((x) & MASK_TYPE) == TYPE_INT)
 #define IS_DOUBLE(x) (((x) & TYPE_NAN) != TYPE_NAN)
+#define IS_STRING(x) (((x) & MASK_TYPE) == TYPE_STR)
 
 // Makes
 #define MAKE_NAN()     ((TYPE_NAN))
 #define MAKE_NIL()     ((TYPE_NIL))
-#define MAKE_BOOL(x)   ((TYPE_BOOL | (x)))
-#define MAKE_CHAR(x)   ((TYPE_CHAR | (x)))
-#define MAKE_INT(x)    ((TYPE_INT  | (uint32_t) (x)))
+#define MAKE_BOOL(x)   ((TYPE_BOOL | (x)) & ~MASK_SIGN)
+#define MAKE_CHAR(x)   ((TYPE_CHAR | (x)) & ~MASK_SIGN)
+#define MAKE_INT(x)    ((TYPE_INT  | (uint32_t) (x)) & ~MASK_SIGN)
 #define MAKE_DOUBLE(x) double_to_word(x)
+#define MAKE_STRING(x) (TYPE_STR)
 
 // Gets
 #define AS_CHAR(x)  ((char) ((x) & MASK_VALUE))
