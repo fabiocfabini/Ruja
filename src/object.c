@@ -67,3 +67,18 @@ Object* object_new(object_type type, ...) {
             return NULL;
     }
 }
+
+ObjString* string_concatenate(ObjString* string1, ObjString* string2) {
+    size_t length = string1->length + string2->length;
+    char* chars = malloc(length + 1);
+    if (chars == NULL) {
+        fprintf(stderr, "Could not allocate memory for string chars\n");
+        return NULL;
+    }
+
+    memcpy(chars, string1->chars, string1->length);
+    memcpy(chars + string1->length, string2->chars, string2->length);
+    chars[length] = '\0';
+
+    return obj_string_new(chars, length);
+}

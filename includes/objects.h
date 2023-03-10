@@ -25,4 +25,7 @@ void object_free(Object* obj);
 
 void print_object(FILE* stream, Object* obj, int width);
 
+
+ObjString* string_concatenate(ObjString* string1, ObjString* string2);
+
 #endif // RUJA_OBJECTS_H

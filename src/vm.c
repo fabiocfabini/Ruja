@@ -3,6 +3,7 @@
 #include <assert.h>
 
 #include "../includes/vm.h"
+#include "../includes/objects.h"
 #include "../includes/memory.h"
 
 
@@ -108,6 +109,11 @@ Ruja_Vm_Status vm_run(Ruja_Vm *vm) {
                 }
 
                 Word word = vm->stack->items[vm->stack->count-1];
+                if (IS_OBJECT(word)) {
+                    fprintf(stderr, RED"BUG: "WHITE"Invalid type for negation in ip '%zu' VM. This is probably a bug in the type checking.\n"RESET, vm->ip);
+                    return RUJA_VM_ERROR;
+                }
+
                 vm->stack->items[vm->stack->count-1] = MAKE_BOOL(!AS_BOOL(word));
 
                 vm->ip++;
@@ -130,6 +136,19 @@ Ruja_Vm_Status vm_run(Ruja_Vm *vm) {
                     return RUJA_VM_ERROR;
                 } else if (IS_INT(word1)) {
                     vm->stack->items[vm->stack->count-2] = MAKE_INT(AS_INT(word1) + AS_INT(word2));
+                    vm->stack->count--;
+                    vm->ip++;
+                } else if (IS_STRING(word1)) {
+                    ObjString *string1 = AS_STRING(word1);
+                    ObjString *string2 = AS_STRING(word2);
+
+                    ObjString *string3 = string_concatenate(string1, string2);
+                    if (string3 == NULL) {
+                        fprintf(stderr, RED"ERROR: "WHITE"Out of memory while concatenating strings in ip '%zu' VM.\n"RESET, vm->ip);
+                        return RUJA_VM_ERROR;
+                    }
+
+                    vm->stack->items[vm->stack->count-2] = MAKE_OBJECT(string3);
                     vm->stack->count--;
                     vm->ip++;
                 } else {
