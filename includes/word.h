@@ -29,7 +29,7 @@ typedef uint64_t Word;
 #define IS_BOOL(x)  (((x) & MASK_TYPE) == TYPE_BOOL)
 #define IS_CHAR(x)  (((x) & MASK_TYPE) == TYPE_CHAR)
 #define IS_INT(x)   (((x) & MASK_TYPE) == TYPE_INT)
-#define IS_DOUBLE(x) (((x) & TYPE_NAN) != TYPE_NAN)
+#define IS_DOUBLE(x) ((((x) & TYPE_NAN) != TYPE_NAN) && (((x) & TYPE_OBJ) != TYPE_OBJ))
 #define IS_OBJECT(x) (((x) & TYPE_OBJ) == TYPE_OBJ)
 #define IS_STRING(x) is_obj_type((x), OBJ_STRING)
 
@@ -40,8 +40,8 @@ typedef uint64_t Word;
 #define MAKE_CHAR(x)   ((TYPE_CHAR | (x)))
 #define MAKE_INT(x)    ((TYPE_INT  | (uint32_t) (x)))
 #define MAKE_DOUBLE(x) double_to_word(x)
-#define MAKE_OBJ(x)   ((TYPE_OBJ | (uintptr_t) (x)))
-#define MAKE_STRING(str, len) MAKE_OBJ(object_new(OBJ_STRING, str, len))
+#define MAKE_OBJECT(x)   ((TYPE_OBJ | (uint64_t)(uintptr_t) (x)))
+#define MAKE_STRING(str, len) MAKE_OBJECT(object_new(OBJ_STRING, str, len))
 
 // Gets
 #define AS_CHAR(x)  ((char) ((x) & MASK_VALUE))
