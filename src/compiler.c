@@ -31,6 +31,8 @@ static Word token_to_word(Ruja_Token* token) {
         case RUJA_TOK_FLOAT: return MAKE_DOUBLE(strtod(token->start, NULL));
         case RUJA_TOK_CHAR: return MAKE_CHAR(*(token->start));
         case RUJA_TOK_NIL: return MAKE_NIL();
+        case RUJA_TOK_FALSE: return MAKE_BOOL(false);
+        case RUJA_TOK_TRUE: return MAKE_BOOL(true);
         case RUJA_TOK_STRING:
         default: {
             fprintf(stderr, "Unknown token kind: %d (%s)\n", token->kind, token->start);
