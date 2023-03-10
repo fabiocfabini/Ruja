@@ -2,6 +2,7 @@
 #include <stdlib.h>
 
 #include "../includes/word.h"
+#include "../includes/objects.h"
 #include "../includes/memory.h"
 
 void print_word(FILE* stream, Word w, int width) {
@@ -21,8 +22,8 @@ void print_word(FILE* stream, Word w, int width) {
         case TYPE_CHAR:
             fprintf(stream, "%*c", width, AS_CHAR(w));
             break;
-        case TYPE_STR:
-            fprintf(stream, "STRING");
+        case TYPE_OBJ:
+            print_object(stream, AS_OBJECT(w));
             break;
         default:
             if (IS_DOUBLE(w))
