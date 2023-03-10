@@ -505,7 +505,7 @@ bool parse(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
     }
     expression(parser, lexer, &(*ast)->as.expr.expression);
     expect(parser, lexer, RUJA_TOK_EOF, "Expected end of file");
-    if (!parser->had_error) {
+    if (parser->previous->kind == RUJA_TOK_EOF) {
         token_free(parser->previous);
         token_free(parser->current);
     }
