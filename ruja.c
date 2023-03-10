@@ -62,7 +62,7 @@ int main() {
 }
 #endif
 
-#if 1 // Bytecode test
+#if 0 // Bytecode test
 int main() {
     Ruja_Vm* vm = vm_new();
 
@@ -184,7 +184,7 @@ int main() {
 }
 #endif
 
-#if 0 // Compiler test
+#if 1 // Compiler test
 int main(void) {
     Ruja_Compiler* compiler = compiler_new();
     Ruja_Vm* vm = vm_new();

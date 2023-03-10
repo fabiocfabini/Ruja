@@ -33,7 +33,7 @@ static Word token_to_word(Ruja_Token* token) {
         case RUJA_TOK_NIL: return MAKE_NIL();
         case RUJA_TOK_FALSE: return MAKE_BOOL(false);
         case RUJA_TOK_TRUE: return MAKE_BOOL(true);
-        case RUJA_TOK_STRING:
+        case RUJA_TOK_STRING: return MAKE_STRING(token->start, token->length);
         default: {
             fprintf(stderr, "Unknown token kind: %d (%s)\n", token->kind, token->start);
             return MAKE_NIL();
@@ -54,6 +54,7 @@ static void push_word(Bytecode* bytecode, Word word) {
         } break;
         case TYPE_CHAR:
         case TYPE_INT:
+        case TYPE_OBJ:
         default: {
             size_t index = add_constant(bytecode, word);
             add_opcode(bytecode, OP_CONST, 0);
