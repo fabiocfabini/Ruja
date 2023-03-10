@@ -44,14 +44,14 @@ typedef struct Ruja_Ast_Node {
     ast_node_type type;
     union {
         struct {
-            Word value;
+            Ruja_Token* tok_literal;
         } literal;
         struct {
-            ast_unary_op_type type;
+            Ruja_Token* tok_unary;
             struct Ruja_Ast_Node *expression;
         } unary_op;
         struct {
-            ast_binary_op_type type;
+            Ruja_Token* tok_binary;
             struct Ruja_Ast_Node *left_expression;
             struct Ruja_Ast_Node *right_expression;
         } binary_op;
@@ -69,9 +69,9 @@ typedef struct Ruja_Ast_Node {
 Ruja_Ast ast_new();
 void ast_free(Ruja_Ast ast);
 
-Ruja_Ast ast_new_literal(Word word);
-Ruja_Ast ast_new_unary_op(ast_unary_op_type type, Ruja_Ast expression);
-Ruja_Ast ast_new_binary_op(ast_binary_op_type type, Ruja_Ast left_expression, Ruja_Ast right_expression);
+Ruja_Ast ast_new_literal(Ruja_Token* literal_token);
+Ruja_Ast ast_new_unary_op(Ruja_Token* unary_token, Ruja_Ast expression);
+Ruja_Ast ast_new_binary_op(Ruja_Token* binary_token, Ruja_Ast left_expression, Ruja_Ast right_expression);
 Ruja_Ast ast_new_ternary_op(Ruja_Ast condition, Ruja_Ast true_expression, Ruja_Ast false_expression);
 Ruja_Ast ast_new_expression(Ruja_Ast expression);
 

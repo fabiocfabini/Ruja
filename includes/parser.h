@@ -12,8 +12,8 @@ typedef enum {
 } Ruja_Parse_Error;
 
 typedef struct {
-    Ruja_Token previous;
-    Ruja_Token current;
+    Ruja_Token* previous;
+    Ruja_Token* current;
     bool had_error;
     bool panic_mode;
 } Ruja_Parser;

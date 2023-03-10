@@ -22,11 +22,14 @@ void ast_free(Ruja_Ast ast) {
         case AST_NODE_EMPTY:
             break;
         case AST_NODE_LITERAL:
+            token_free(ast->as.literal.tok_literal);
             break;
         case AST_NODE_UNARY_OP:
+            token_free(ast->as.unary_op.tok_unary);
             ast_free(ast->as.unary_op.expression);
             break;
         case AST_NODE_BINARY_OP:
+            token_free(ast->as.binary_op.tok_binary);
             ast_free(ast->as.binary_op.left_expression);
             ast_free(ast->as.binary_op.right_expression);
             break;
@@ -43,33 +46,33 @@ void ast_free(Ruja_Ast ast) {
     free(ast);
 }
 
-Ruja_Ast ast_new_literal(Word word) {
+Ruja_Ast ast_new_literal(Ruja_Token* literal_token) {
     Ruja_Ast ast = ast_new();
     if (ast == NULL) return NULL;
 
     ast->type = AST_NODE_LITERAL;
-    ast->as.literal.value = word;
+    ast->as.literal.tok_literal = literal_token;
 
     return ast;
 }
 
-Ruja_Ast ast_new_unary_op(ast_unary_op_type type, Ruja_Ast expression) {
+Ruja_Ast ast_new_unary_op(Ruja_Token* unary_token, Ruja_Ast expression) {
     Ruja_Ast ast = ast_new();
     if (ast == NULL) return NULL;
 
     ast->type = AST_NODE_UNARY_OP;
-    ast->as.unary_op.type = type;
+    ast->as.unary_op.tok_unary = unary_token;
     ast->as.unary_op.expression = expression;
 
     return ast;
 }
 
-Ruja_Ast ast_new_binary_op(ast_binary_op_type type, Ruja_Ast left_expression, Ruja_Ast right_expression) {
+Ruja_Ast ast_new_binary_op(Ruja_Token* binary_token, Ruja_Ast left_expression, Ruja_Ast right_expression) {
     Ruja_Ast ast = ast_new();
     if (ast == NULL) return NULL;
 
     ast->type = AST_NODE_BINARY_OP;
-    ast->as.binary_op.type = type;
+    ast->as.binary_op.tok_binary = binary_token;
     ast->as.binary_op.left_expression = left_expression;
     ast->as.binary_op.right_expression = right_expression;
 
@@ -104,15 +107,18 @@ Ruja_Ast ast_new_expression(Ruja_Ast expression) {
  * @param type 
  * @return const char* 
  */
-const char *ast_unary_op_type_to_string(ast_unary_op_type type) {
-    switch (type) {
-        case AST_UNARY_OP_NOT:
+const char *unary_token_kind_to_string(Ruja_Token_Kind kind) {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wswitch-enum"
+    switch (kind) {
+        case RUJA_TOK_NOT:
             return "not";
-        case AST_UNARY_OP_NEG:
+        case RUJA_TOK_SUB:
             return "-";
         default:
             return "unknown";
     }
+#pragma GCC diagnostic pop
 }
 
 /**
@@ -121,35 +127,38 @@ const char *ast_unary_op_type_to_string(ast_unary_op_type type) {
  * @param type 
  * @return const char* 
  */
-const char *ast_binary_op_type_to_string(ast_binary_op_type type) {
-    switch (type) {
-        case AST_BINARY_OP_ADD:
+const char *binary_token_kind_to_string(Ruja_Token_Kind kind) {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wswitch-enum"
+    switch (kind) {
+        case RUJA_TOK_ADD:
             return "+";
-        case AST_BINARY_OP_SUB:
+        case RUJA_TOK_SUB:
             return "-";
-        case AST_BINARY_OP_MUL:
+        case RUJA_TOK_MUL:
             return "*";
-        case AST_BINARY_OP_DIV:
+        case RUJA_TOK_DIV:
             return "/";
-        case AST_BINARY_OP_AND:
+        case RUJA_TOK_AND:
             return "and";
-        case AST_BINARY_OP_OR:
+        case RUJA_TOK_OR:
             return "or";
-        case AST_BINARY_OP_EQ:
+        case RUJA_TOK_EQ:
             return "==";
-        case AST_BINARY_OP_NE:
+        case RUJA_TOK_NE:
             return "!=";
-        case AST_BINARY_OP_LT:
+        case RUJA_TOK_LT:
             return "<";
-        case AST_BINARY_OP_LE:
+        case RUJA_TOK_LE:
             return "<=";
-        case AST_BINARY_OP_GT:
+        case RUJA_TOK_GT:
             return ">";
-        case AST_BINARY_OP_GE:
+        case RUJA_TOK_GE:
             return ">=";
         default:
             return "unknown";
     }
+#pragma GCC diagnostic pop
 }
 
 /**
@@ -176,6 +185,22 @@ static void dot_node(FILE* file, size_t id, const char* label, const char* color
     fprintf(file, "    %zu [label=\"%s\", fillcolor=\"%s\", style=\"%s\"];\n", id, label, color?color:"black", style?style:"");
 }
 
+static void print_token_word(FILE* file, Ruja_Token* token) {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wswitch-enum"
+    switch (token->kind) {
+        case RUJA_TOK_INT: fprintf(file, "%ld", strtol(token->start, NULL, 10)); break;
+        case RUJA_TOK_FLOAT: fprintf(file, "%lf", strtod(token->start, NULL)); break;
+        case RUJA_TOK_CHAR: fprintf(file, "%c", *(token->start)); break;
+        case RUJA_TOK_TRUE: fprintf(file, "%.*s", (int) token->length, token->start); break;
+        case RUJA_TOK_FALSE: fprintf(file, "%.*s", (int) token->length, token->start); break;
+        case RUJA_TOK_STRING: fprintf(file, "%.*s", (int) token->length, token->start); break;
+        case RUJA_TOK_NIL: fprintf(file, "%.*s", (int) token->length, token->start); break;
+        default: fprintf(file, "UNKNOWN");
+    }
+#pragma GCC diagnostic pop
+}
+
 /**
  * @brief Print an ast word node to a file in dot format
  * 
@@ -185,9 +210,9 @@ static void dot_node(FILE* file, size_t id, const char* label, const char* color
  * @param color The color of the node
  * @param style The style of the node
  */
-static void dot_node_word(FILE* file, size_t id, Word word, const char* color, const char* style) {
+static void dot_node_word(FILE* file, size_t id, Ruja_Token* token, const char* color, const char* style) {
     fprintf(file, "    %zu [label=\"", id);
-    print_word(file, word, 0);
+    print_token_word(file, token);
     fprintf(file, "\", fillcolor=\"%s\", style=\"%s\"];\n", color?color:"black", style?style:"");
 }
 
@@ -229,12 +254,12 @@ static void ast_dot_internal(Ruja_Ast ast, FILE* file, size_t* id) {
         case AST_NODE_LITERAL:
             dot_node(file, root_id, "Literal", EXPRESSION_COLOR, "filled");
             dot_arrow(file, root_id, increment(id), "value");
-            dot_node_word(file, *id, ast->as.literal.value, LITERAL_COLOR, "filled");
+            dot_node_word(file, *id, ast->as.literal.tok_literal, LITERAL_COLOR, "filled");
             break;
         case AST_NODE_UNARY_OP:
             dot_node(file, root_id, "UnaryOp", EXPRESSION_COLOR, "filled");
             dot_arrow(file, root_id, increment(id), "type");
-            dot_node(file, *id, ast_unary_op_type_to_string(ast->as.unary_op.type), ARITHMETIC_COLOR, "filled");
+            dot_node(file, *id, unary_token_kind_to_string(ast->as.unary_op.tok_unary->kind), ARITHMETIC_COLOR, "filled");
             dot_arrow(file, root_id, increment(id), "expression");
             ast_dot_internal(ast->as.unary_op.expression, file, id);
             break;
@@ -243,7 +268,7 @@ static void ast_dot_internal(Ruja_Ast ast, FILE* file, size_t* id) {
             dot_arrow(file, root_id, increment(id), "left_expression");
             ast_dot_internal(ast->as.binary_op.left_expression, file, id);
             dot_arrow(file, root_id, increment(id), "type");
-            dot_node(file, *id, ast_binary_op_type_to_string(ast->as.binary_op.type), ARITHMETIC_COLOR, "filled");
+            dot_node(file, *id, binary_token_kind_to_string(ast->as.binary_op.tok_binary->kind), ARITHMETIC_COLOR, "filled");
             dot_arrow(file, root_id, increment(id), "right_expression");
             ast_dot_internal(ast->as.binary_op.right_expression, file, id);
             break;

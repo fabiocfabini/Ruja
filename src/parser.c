@@ -31,8 +31,73 @@ static void parser_error(Ruja_Parser *parser, Ruja_Lexer *lexer, const char *msg
         return;
     parser->panic_mode = true;
 
-    fprintf(stderr, "%s:%" PRIu64 ": " RED "parse error" RESET " %s got '%.*s'.\n", lexer->source, parser->previous.line, msg, (int)parser->previous.length, parser->previous.start);
+    fprintf(stderr, "%s:%" PRIu64 ": " RED "parse error" RESET " %s got '%.*s'.\n", lexer->source, parser->previous->line, msg, (int)parser->previous->length, parser->previous->start);
     parser->had_error = true;
+}
+
+static void maybe_free_token(Ruja_Token *token) {
+    switch (token->kind) {
+        case RUJA_TOK_EOF        : token_free(token); return;
+        case RUJA_TOK_LBRACE     : return;
+        case RUJA_TOK_RBRACE     : return; 
+        case RUJA_TOK_LPAREN     : token_free(token); return;
+        case RUJA_TOK_RPAREN     : token_free(token); return;
+        case RUJA_TOK_LBRACKET   : return;
+        case RUJA_TOK_RBRACKET   : return;
+        case RUJA_TOK_COLON      : token_free(token); return;
+        case RUJA_TOK_SEMICOLON  : return;
+        case RUJA_TOK_COMMA      : return;
+        case RUJA_TOK_DOT        : return;
+        case RUJA_TOK_ASSIGN     : return;
+        case RUJA_TOK_QUESTION   : token_free(token); return;
+        case RUJA_TOK_NE         : return;
+        case RUJA_TOK_LT         : return;
+        case RUJA_TOK_GT         : return;
+        case RUJA_TOK_ARROW      : return;
+        case RUJA_TOK_ADD        : return;
+        case RUJA_TOK_SUB        : return;
+        case RUJA_TOK_MUL        : return;
+        case RUJA_TOK_DIV        : return;
+        case RUJA_TOK_PERCENT    : return;
+        case RUJA_TOK_EQ         : return;
+        case RUJA_TOK_LE         : return;
+        case RUJA_TOK_GE         : return;
+        case RUJA_TOK_ADD_EQ     : return;
+        case RUJA_TOK_SUB_EQ     : return;
+        case RUJA_TOK_MUL_EQ     : return;
+        case RUJA_TOK_DIV_EQ     : return;
+        case RUJA_TOK_PERCENT_EQ : return;
+        case RUJA_TOK_AND        : return;
+        case RUJA_TOK_OR         : return;
+        case RUJA_TOK_NOT        : return;
+        case RUJA_TOK_IF         : return;
+        case RUJA_TOK_ELSE       : return;
+        case RUJA_TOK_ELIF       : return;
+        case RUJA_TOK_FOR        : return;
+        case RUJA_TOK_IN         : return;
+        case RUJA_TOK_PROC       : return;
+        case RUJA_TOK_RETURN     : return;
+        case RUJA_TOK_STRUCT     : return;
+        case RUJA_TOK_ENUM       : return;
+        case RUJA_TOK_NIL        : return;
+        case RUJA_TOK_TRUE       : return;
+        case RUJA_TOK_FALSE      : return;
+        case RUJA_TOK_LET        : return;
+        case RUJA_TOK_BREAK      : return;
+        case RUJA_TOK_CONTINUE   : return;
+        case RUJA_TOK_TYPE_I32   : return;
+        case RUJA_TOK_TYPE_F64   : return;
+        case RUJA_TOK_TYPE_BOOL  : return;
+        case RUJA_TOK_TYPE_CHAR  : return;
+        case RUJA_TOK_TYPE_STRING: return;
+        case RUJA_TOK_ID         : return;
+        case RUJA_TOK_INT        : return;
+        case RUJA_TOK_FLOAT      : return;
+        case RUJA_TOK_STRING     : return;
+        case RUJA_TOK_CHAR       : return;
+        case RUJA_TOK_ERR        : return;
+        default                  : return;
+    }
 }
 
 /**
@@ -42,12 +107,14 @@ static void parser_error(Ruja_Parser *parser, Ruja_Lexer *lexer, const char *msg
  * @param lexer The lexer that holds the source file.
  */
 static void advance(Ruja_Parser *parser, Ruja_Lexer *lexer) {
+    if (parser->previous != NULL) maybe_free_token(parser->previous);
+
     parser->previous = parser->current;
 
     while (true) {
         parser->current = next_token(lexer);
 
-        if (parser->current.kind != RUJA_TOK_ERR)
+        if (parser->current->kind != RUJA_TOK_ERR)
             break;
 
         signal_lexer_error(parser);
@@ -63,7 +130,7 @@ static void advance(Ruja_Parser *parser, Ruja_Lexer *lexer) {
  * @param msg The error message.
  */
 static void expect(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Token_Kind kind, const char *msg) {
-    if (parser->current.kind == kind) {
+    if (parser->current->kind == kind) {
         advance(parser, lexer);
         return;
     }
@@ -187,8 +254,7 @@ static void nil(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
     UNUSED(parser);
     UNUSED(lexer);
 
-    Word nil = MAKE_NIL();
-    (*ast) = ast_new_literal(nil);
+    (*ast) = ast_new_literal(parser->previous);
 }
 
 /**
@@ -200,8 +266,7 @@ static void nil(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
 static void boolean(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
     UNUSED(lexer);
     
-    Word boolean = MAKE_BOOL(parser->previous.start[0] == 't');
-    (*ast) = ast_new_literal(boolean);
+    (*ast) = ast_new_literal(parser->previous);
 }
 
 /**
@@ -213,8 +278,7 @@ static void boolean(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
 static void integer(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
     UNUSED(lexer);
     
-    Word integer = MAKE_INT(strtod(parser->previous.start, NULL));
-    (*ast) = ast_new_literal(integer);
+    (*ast) = ast_new_literal(parser->previous);
 }
 
 /**
@@ -226,8 +290,7 @@ static void integer(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
 static void floating(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
     UNUSED(lexer);
     
-    Word floating = MAKE_DOUBLE(strtod(parser->previous.start, NULL));
-    (*ast) = ast_new_literal(floating);
+    (*ast) = ast_new_literal(parser->previous);
 }
 
 /**
@@ -239,8 +302,7 @@ static void floating(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
 static void character(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
     UNUSED(lexer);
     
-    Word character = MAKE_CHAR(parser->previous.start[0]);
-    (*ast) = ast_new_literal(character);
+    (*ast) = ast_new_literal(parser->previous);
 }
 
 /**
@@ -282,48 +344,6 @@ static void grouping(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
     expect(parser, lexer, RUJA_TOK_RPAREN, "Unclosed left parenthesis. Expected ')'");
 }
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wswitch-enum"
-
-/**
- * @brief Convert a token unary operator to an ast unary operator
- * 
- * @param kind The token kind
- * @return ast_unary_op_type The ast unary operator 
- */
-static ast_unary_op_type token_unary_to_ast_unary(Ruja_Token_Kind kind) {
-    switch (kind) {
-        case RUJA_TOK_NOT: return AST_UNARY_OP_NOT;
-        case RUJA_TOK_SUB: return AST_UNARY_OP_NEG;
-        default: assert(false && "Invalid binary operator");
-    }
-}
-
-/**
- * @brief Convert a token binary operator to an ast binary operator
- * 
- * @param kind The token kind
- * @return ast_binary_op_type The ast binary operator 
- */
-static ast_binary_op_type token_binary_to_ast_binary(Ruja_Token_Kind kind) {
-    switch (kind) {
-        case RUJA_TOK_ADD: return AST_BINARY_OP_ADD;
-        case RUJA_TOK_SUB: return AST_BINARY_OP_SUB;
-        case RUJA_TOK_MUL: return AST_BINARY_OP_MUL;
-        case RUJA_TOK_DIV: return AST_BINARY_OP_DIV;
-        case RUJA_TOK_AND: return AST_BINARY_OP_AND;
-        case RUJA_TOK_OR:  return AST_BINARY_OP_OR;
-        case RUJA_TOK_EQ:  return AST_BINARY_OP_EQ;
-        case RUJA_TOK_NE:  return AST_BINARY_OP_NE;
-        case RUJA_TOK_GT:  return AST_BINARY_OP_GT;
-        case RUJA_TOK_LT:  return AST_BINARY_OP_LT;
-        case RUJA_TOK_GE:  return AST_BINARY_OP_GE;
-        case RUJA_TOK_LE:  return AST_BINARY_OP_LE;
-        default: assert(false && "Invalid binary operator");
-    }
-}
-#pragma GCC diagnostic pop
-
 /**
  * @brief Parser a unary expression
  * 
@@ -335,8 +355,8 @@ static void unary(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
     //         "This function assumes that a unary token has been already consumed.");
 
     // Save the previous unary operation
-    Ruja_Token unary_op = parser->previous;
-    Ruja_Ast unary = ast_new_unary_op(token_unary_to_ast_unary(unary_op.kind), NULL);
+    Ruja_Token* unary_op = parser->previous;
+    Ruja_Ast unary = ast_new_unary_op(unary_op, NULL);
 
     // Parse any following expressions that have equal or higher precedence
     parse_precedence(parser, lexer, &unary->as.unary_op.expression, PREC_UNARY);
@@ -360,12 +380,12 @@ static void binary(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
     //         "This function assumes that a binary token has been already consumed.");
 
     // Save the current binary operation
-    Ruja_Token binary_op = parser->previous;
-    Ruja_Ast binary = ast_new_binary_op(token_binary_to_ast_binary(binary_op.kind), *ast, NULL);
+    Ruja_Token* binary_op = parser->previous;
+    Ruja_Ast binary = ast_new_binary_op(binary_op, *ast, NULL);
 
     // Parse any following expressions that have higher precedence
     // Since not all binary operations have the same precedence we must search for it
-    Precedence binary_op_precedence = get_rule(parser->previous.kind)->precedence;
+    Precedence binary_op_precedence = get_rule(parser->previous->kind)->precedence;
     parse_precedence(parser, lexer, &binary->as.binary_op.right_expression, binary_op_precedence + 1);
 
     (*ast) = binary;
@@ -421,7 +441,7 @@ static void parse_precedence(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* a
     // At this point in the execution the current token can only be a token that has prefix rules (unary, primary or '(')
     // Get the current token's prefix rule
     advance(parser, lexer);
-    Parser_Function prefix_rule = get_rule(parser->previous.kind)->prefix;
+    Parser_Function prefix_rule = get_rule(parser->previous->kind)->prefix;
     if (prefix_rule == NULL)
     {
         parser_error(parser, lexer, "Expected an expression");
@@ -462,9 +482,9 @@ static void parse_precedence(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* a
         parameter.
     */
 
-    while (precedence <= get_rule(parser->current.kind)->precedence) {
+    while (precedence <= get_rule(parser->current->kind)->precedence) {
         advance(parser, lexer);
-        Parser_Function infix_rule = get_rule(parser->previous.kind)->infix;
+        Parser_Function infix_rule = get_rule(parser->previous->kind)->infix;
         if (infix_rule == NULL) {
             parser_error(parser, lexer, "Expected binary operator");
             return;
@@ -485,6 +505,10 @@ bool parse(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
     }
     expression(parser, lexer, &(*ast)->as.expr.expression);
     expect(parser, lexer, RUJA_TOK_EOF, "Expected end of file");
+    if (!parser->had_error) {
+        token_free(parser->previous);
+        token_free(parser->current);
+    }
 
     return !parser->had_error;
 }
@@ -496,6 +520,8 @@ Ruja_Parser *parser_new() {
         return NULL;
     }
 
+    parser->previous = NULL;
+    parser->current = NULL;
     parser->had_error = false;
     parser->panic_mode = false;
 

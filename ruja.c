@@ -89,16 +89,18 @@ int main() {
 int main(void) {
     Ruja_Lexer* lexer = lexer_new("tokens.ruja");
     if (lexer != NULL) {
-        Ruja_Token token;
+        Ruja_Token* token = NULL;
 
         do {
+            if(token != NULL) token_free(token);
             token = next_token(lexer);
-            token_to_string(&token);
-            if (token.kind == RUJA_TOK_ERR) {
+            token_to_string(token);
+            if (token->kind == RUJA_TOK_ERR) {
                 printf("Error\n");
                 break;
             }
-        } while (token.kind != RUJA_TOK_EOF);
+        } while (token->kind != RUJA_TOK_EOF);
+        token_free(token);
 
         lexer_free(lexer);
     }
@@ -107,7 +109,7 @@ int main(void) {
 }
 #endif
 
-#if 0 // Parser test
+#if 1 // Parser test
 int main(int argc, char** argv) {
     if (argc < 2) {
         usage(); return 1;
@@ -173,7 +175,7 @@ int main() {
 }
 #endif
 
-#if 1 // Compiler test
+#if 0 // Compiler test
 int main(void) {
     Ruja_Compiler* compiler = compiler_new();
     Ruja_Vm* vm = vm_new();

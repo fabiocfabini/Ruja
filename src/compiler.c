@@ -23,6 +23,23 @@ void compiler_free(Ruja_Compiler *compiler) {
     free(compiler);
 }
 
+static Word token_to_word(Ruja_Token* token) {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wswitch-enum"
+    switch (token->kind) {
+        case RUJA_TOK_INT: return MAKE_INT(strtod(token->start, NULL));
+        case RUJA_TOK_FLOAT: return MAKE_DOUBLE(strtod(token->start, NULL));
+        case RUJA_TOK_CHAR: return MAKE_CHAR(*(token->start));
+        case RUJA_TOK_NIL: return MAKE_NIL();
+        case RUJA_TOK_STRING:
+        default: {
+            fprintf(stderr, "Unknown token kind: %d (%s)\n", token->kind, token->start);
+            return MAKE_NIL();
+        }
+    }
+#pragma GCC diagnostic pop
+}
+
 static void push_word(Bytecode* bytecode, Word word) {
     switch (word & MASK_TYPE) {
         case TYPE_NIL: add_opcode(bytecode, OP_NIL, 0); break;
@@ -50,16 +67,19 @@ static Ruja_Compile_Error compile_internal(Ruja_Ast ast, Bytecode* bytecode) {
             return RUJA_COMPILER_ERROR;
         }
         case AST_NODE_LITERAL: {
-            push_word(bytecode, ast->as.literal.value);
+            push_word(bytecode, token_to_word(ast->as.literal.tok_literal));
         } break;
         case AST_NODE_UNARY_OP: {
             Ruja_Compile_Error error = compile_internal(ast->as.unary_op.expression, bytecode);
             if (error != RUJA_COMPILER_OK) return error;
 
-            switch (ast->as.unary_op.type) {
-                case AST_UNARY_OP_NOT: add_opcode(bytecode, OP_NOT, 0); break;
-                case AST_UNARY_OP_NEG: add_opcode(bytecode, OP_NEG, 0); break;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wswitch"
+            switch (ast->as.unary_op.tok_unary->kind) {
+                case RUJA_TOK_NOT: add_opcode(bytecode, OP_NOT, 0); break;
+                case RUJA_TOK_SUB: add_opcode(bytecode, OP_NEG, 0); break;
             }
+#pragma GCC diagnostic pop
         } break;
         case AST_NODE_BINARY_OP: {
             Ruja_Compile_Error error = compile_internal(ast->as.binary_op.left_expression, bytecode);
@@ -68,20 +88,23 @@ static Ruja_Compile_Error compile_internal(Ruja_Ast ast, Bytecode* bytecode) {
             error = compile_internal(ast->as.binary_op.right_expression, bytecode);
             if (error != RUJA_COMPILER_OK) return error;
 
-            switch (ast->as.binary_op.type) {
-                case AST_BINARY_OP_ADD : add_opcode(bytecode, OP_ADD, 0); break;
-                case AST_BINARY_OP_SUB : add_opcode(bytecode, OP_SUB, 0); break;
-                case AST_BINARY_OP_MUL : add_opcode(bytecode, OP_MUL, 0); break;
-                case AST_BINARY_OP_DIV : add_opcode(bytecode, OP_DIV, 0); break;
-                case AST_BINARY_OP_EQ  : add_opcode(bytecode, OP_EQ, 0); break;
-                case AST_BINARY_OP_NE  : add_opcode(bytecode, OP_NEQ, 0); break;
-                case AST_BINARY_OP_LT  : add_opcode(bytecode, OP_LT, 0); break;
-                case AST_BINARY_OP_LE  : add_opcode(bytecode, OP_LTE, 0); break;
-                case AST_BINARY_OP_GT  : add_opcode(bytecode, OP_GT, 0); break;
-                case AST_BINARY_OP_GE  : add_opcode(bytecode, OP_GTE, 0); break;
-                case AST_BINARY_OP_AND : add_opcode(bytecode, OP_AND, 0); break;
-                case AST_BINARY_OP_OR  : add_opcode(bytecode, OP_OR, 0); break;
+            #pragma GCC diagnostic push
+            #pragma GCC diagnostic ignored "-Wswitch"
+            switch (ast->as.binary_op.tok_binary->kind) {
+                case RUJA_TOK_ADD : add_opcode(bytecode, OP_ADD, 0); break;
+                case RUJA_TOK_SUB : add_opcode(bytecode, OP_SUB, 0); break;
+                case RUJA_TOK_MUL : add_opcode(bytecode, OP_MUL, 0); break;
+                case RUJA_TOK_DIV : add_opcode(bytecode, OP_DIV, 0); break;
+                case RUJA_TOK_EQ  : add_opcode(bytecode, OP_EQ, 0); break;
+                case RUJA_TOK_NE  : add_opcode(bytecode, OP_NEQ, 0); break;
+                case RUJA_TOK_LT  : add_opcode(bytecode, OP_LT, 0); break;
+                case RUJA_TOK_LE  : add_opcode(bytecode, OP_LTE, 0); break;
+                case RUJA_TOK_GT  : add_opcode(bytecode, OP_GT, 0); break;
+                case RUJA_TOK_GE  : add_opcode(bytecode, OP_GTE, 0); break;
+                case RUJA_TOK_AND : add_opcode(bytecode, OP_AND, 0); break;
+                case RUJA_TOK_OR  : add_opcode(bytecode, OP_OR, 0); break;
             }
+            #pragma GCC diagnostic pop
         } break;
         case AST_NODE_TERNARY_OP: {
             Ruja_Compile_Error error = compile_internal(ast->as.ternary_op.condition, bytecode);
@@ -129,15 +152,11 @@ Ruja_Compile_Error compile(Ruja_Compiler *compiler, const char *source_path, Byt
     lexer = lexer_new(source_path);
     if (lexer == NULL) goto error;
 
-    parser = parser_new(lexer);
+    parser = parser_new();
     if (parser == NULL) goto error;
 
     if (!parse(parser, lexer, &compiler->ast)) goto error;
 
-    lexer_free(lexer); lexer = NULL;
-    parser_free(parser); parser = NULL;
-    // from this point we no longer have access to the source code. Let's see how it goes
-    // if it's a problem we can always store the source code in the compiler struct
 
     if (compiler->ast->type != AST_NODE_EXPRESSION) {
         fprintf(stderr, "Only expressions are supported\n");
@@ -149,6 +168,10 @@ Ruja_Compile_Error compile(Ruja_Compiler *compiler, const char *source_path, Byt
         goto error;
     }
 
+    lexer_free(lexer); lexer = NULL;
+    parser_free(parser); parser = NULL;
+    // from this point we no longer have access to the source code. Let's see how it goes
+    // if it's a problem we can always store the source code in the compiler struct
     add_opcode(bytecode, OP_HALT, 0);
     return RUJA_COMPILER_OK;
 
