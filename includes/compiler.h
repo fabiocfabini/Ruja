@@ -2,8 +2,8 @@
 #define RUJA_COMPILER_H
 
 #include "common.h"
-#include "ast.h"
 #include "bytecode.h"
+#include "ast.h"
 
 
 typedef enum {
