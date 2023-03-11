@@ -9,8 +9,9 @@ typedef enum {
 } object_type;
 
 // Base object type
-typedef struct {
+typedef struct Object {
     object_type type;
+    struct Object* next;
 } Object;
 
 // String object
@@ -34,6 +35,7 @@ void print_object(FILE* stream, Object* obj, int width);
 #define MAKE_STRING(str, len) MAKE_OBJECT(object_new(OBJ_STRING, str, len))
 #define IS_STRING(x) is_obj_type((x), OBJ_STRING)
 ObjString* obj_string_new(const char* chars, size_t length);
+ObjString* obj_string_new_no_alloc(char* chars, size_t length);
 ObjString* string_concatenate(ObjString* string1, ObjString* string2);
 
 #endif // RUJA_OBJECTS_H

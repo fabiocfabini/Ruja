@@ -27,15 +27,30 @@ Ruja_Vm *vm_new() {
 
     vm->bytecode = bytecode;
     vm->stack = stack;
+    vm->objects = NULL;
     vm->ip = 0;
 
     return vm;
 }
 
+static void objects_free(Object* obj) {
+    while (obj != NULL) {
+        Object* next = obj->next;
+        object_free(obj);
+        obj = next;
+    }
+}
+
 void vm_free(Ruja_Vm *vm) {
     bytecode_free(vm->bytecode);
     stack_free(vm->stack);
+    objects_free(vm->objects);
     free(vm);
+}
+
+static void add_to_list(Ruja_Vm *vm, Object* obj) {
+    obj->next = vm->objects;
+    vm->objects = obj;
 }
 
 Object* vm_allocate_object(Ruja_Vm *vm, object_type type, ...) {
@@ -51,6 +66,8 @@ Object* vm_allocate_object(Ruja_Vm *vm, object_type type, ...) {
             if (obj == NULL) return NULL;
 
             va_end(args);
+
+            add_to_list(vm, (Object*) obj);
 
             return (Object*) obj;
         } break;
@@ -171,6 +188,7 @@ Ruja_Vm_Status vm_run(Ruja_Vm *vm) {
                         fprintf(stderr, RED"ERROR: "WHITE"Out of memory while concatenating strings in ip '%zu' VM.\n"RESET, vm->ip);
                         return RUJA_VM_ERROR;
                     }
+                    add_to_list(vm, (Object*) string3);
 
                     vm->stack->items[vm->stack->count-2] = MAKE_OBJECT(string3);
                     vm->stack->count--;

@@ -49,6 +49,19 @@ ObjString* obj_string_new(const char* chars, size_t length) {
     return obj;
 }
 
+ObjString* obj_string_new_no_alloc(char* chars, size_t length) {
+    ObjString* obj = malloc(sizeof(ObjString));
+    if (obj == NULL) {
+        fprintf(stderr, "Could not allocate memory for object\n");
+        return NULL;
+    }
+
+    obj->obj.type = OBJ_STRING;
+    obj->length = length;
+    obj->chars = chars;
+
+    return obj;
+}
 
 ObjString* string_concatenate(ObjString* string1, ObjString* string2) {
     size_t length = string1->length + string2->length;
@@ -62,5 +75,5 @@ ObjString* string_concatenate(ObjString* string1, ObjString* string2) {
     memcpy(chars + string1->length, string2->chars, string2->length);
     chars[length] = '\0';
 
-    return obj_string_new(chars, length);
+    return obj_string_new_no_alloc(chars, length);
 }
