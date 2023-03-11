@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <assert.h>
 
 #include "../includes/vm.h"
@@ -35,6 +36,29 @@ void vm_free(Ruja_Vm *vm) {
     bytecode_free(vm->bytecode);
     stack_free(vm->stack);
     free(vm);
+}
+
+Object* vm_allocate_object(Ruja_Vm *vm, object_type type, ...) {
+    switch (type) {
+        case OBJ_STRING: {
+            va_list args;
+            va_start(args, type);
+
+            const char* chars = va_arg(args, const char*);
+            size_t length = va_arg(args, size_t);
+
+            ObjString* obj = obj_string_new(chars, length);
+            if (obj == NULL) return NULL;
+
+            va_end(args);
+
+            return (Object*) obj;
+        } break;
+        default: {
+            fprintf(stderr, "Unknown object type '%d'\n", type);
+            return NULL;
+        }
+    }
 }
 
 Ruja_Vm_Status vm_run(Ruja_Vm *vm) {

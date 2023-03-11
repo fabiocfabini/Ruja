@@ -118,7 +118,7 @@ int main(void) {
 }
 #endif
 
-#if 1 // Parser test
+#if 0 // Parser test
 int main(int argc, char** argv) {
     if (argc < 2) {
         usage(); return 1;
@@ -184,12 +184,12 @@ int main() {
 }
 #endif
 
-#if 0 // Compiler test
+#if 1 // Compiler test
 int main(void) {
     Ruja_Compiler* compiler = compiler_new();
     Ruja_Vm* vm = vm_new();
 
-    if (compile(compiler, "input.ruja", vm->bytecode) != RUJA_COMPILER_ERROR) {
+    if (compile(compiler, "input.ruja", vm) != RUJA_COMPILER_ERROR) {
         // disassemble(vm->bytecode, "code");
         vm_run(vm);
     }

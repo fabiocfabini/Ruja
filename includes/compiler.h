@@ -2,8 +2,8 @@
 #define RUJA_COMPILER_H
 
 #include "common.h"
-#include "bytecode.h"
 #include "ast.h"
+#include "vm.h"
 
 
 typedef enum {
@@ -18,6 +18,6 @@ typedef struct {
 Ruja_Compiler* compiler_new();
 void compiler_free(Ruja_Compiler *compiler);
 
-Ruja_Compile_Error compile(Ruja_Compiler *compiler, const char *source_path, Bytecode *bytecode);
+Ruja_Compile_Error compile(Ruja_Compiler *compiler, const char *source_path, Ruja_Vm* vm);
 
 #endif // RUJA_COMPILER_H
