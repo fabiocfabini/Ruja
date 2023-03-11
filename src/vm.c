@@ -69,7 +69,7 @@ Ruja_Vm_Status vm_run(Ruja_Vm *vm) {
                                         (((size_t) vm->bytecode->items[vm->ip+2]) << 16) |
                                         (((size_t) vm->bytecode->items[vm->ip+3]) << 8) |
                                         (((size_t) vm->bytecode->items[vm->ip+4]));
-                stack_push(vm->stack, vm->bytecode->constant_words->items[constant_index]);
+                stack_push(vm->stack, vm->bytecode->constants->items[constant_index]);
                 vm->ip += 5;
             } break;
             case OP_NIL: {

@@ -4,7 +4,11 @@
 #include "common.h"
 #include "word.h"
 
-typedef Words Stack;
+typedef struct {
+    size_t count;
+    size_t capacity;
+    Word* items;
+} Stack;
 
 Stack *stack_new();
 void stack_free(Stack *stack);

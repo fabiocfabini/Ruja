@@ -5,6 +5,25 @@
 #include "../includes/bytecode.h"
 #include "../includes/memory.h"
 
+Constants* constants_new() {
+    Constants* contants = malloc(sizeof(Constants));
+    if (contants == NULL) {
+        fprintf(stderr, "Could not allocate memory for contants\n");
+        return NULL;
+    }
+
+    contants->count = 0;
+    contants->capacity = 0;
+    contants->items = NULL;
+
+    return contants;
+}
+
+void constants_free(Constants* constants) {
+    free(constants->items);
+    free(constants);
+}
+
 Bytecode* bytecode_new() {
     Bytecode* bytecode = malloc(sizeof(Bytecode));
     if (bytecode == NULL) {
@@ -12,8 +31,8 @@ Bytecode* bytecode_new() {
         return NULL;
     }
 
-    bytecode->constant_words = words_new();
-    if (bytecode->constant_words == NULL) return NULL;
+    bytecode->constants = constants_new();
+    if (bytecode->constants == NULL) return NULL;
 
     bytecode->count = 0;
     bytecode->capacity = 0;
@@ -24,20 +43,20 @@ Bytecode* bytecode_new() {
 }
 
 void bytecode_free(Bytecode* bytecode) {
-    words_free(bytecode->constant_words);
+    constants_free(bytecode->constants);
     free(bytecode->items);
     free(bytecode->lines);
     free(bytecode);
 }
 
 size_t add_constant(Bytecode* bytecode, Word word) {
-    if (bytecode->constant_words->count >= bytecode->constant_words->capacity) {
-        REALLOC_DA(Word, bytecode->constant_words);
+    if (bytecode->constants->count >= bytecode->constants->capacity) {
+        REALLOC_DA(Word, bytecode->constants);
     }
 
-    bytecode->constant_words->items[bytecode->constant_words->count++] = word;
+    bytecode->constants->items[bytecode->constants->count++] = word;
 
-    return bytecode->constant_words->count-1;
+    return bytecode->constants->count-1;
 }
 
 void add_opcode(Bytecode* bytecode, uint8_t byte, size_t line) {
@@ -117,7 +136,7 @@ static void disassemble_instruction(Bytecode* bytecode, size_t* index) {
                                     (bytecode->items[*index+2] << 16) | 
                                     (bytecode->items[*index+3] <<  8) | 
                                     bytecode->items[*index+4];
-            print_word(stdout, bytecode->constant_words->items[constant_index], 20); *index += 4;
+            print_word(stdout, bytecode->constants->items[constant_index], 20); *index += 4;
             printf(" |");
         } break;
     }

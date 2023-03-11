@@ -6,7 +6,7 @@
 
 
 Stack *stack_new() {
-    Stack* stack = malloc(sizeof(Words));
+    Stack* stack = malloc(sizeof(Stack));
     if (stack == NULL) {
         fprintf(stderr, "Could not allocate memory for stack\n");
         return NULL;

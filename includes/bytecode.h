@@ -38,10 +38,19 @@ typedef enum {
 typedef struct {
     size_t count;
     size_t capacity;
+    Word* items;
+} Constants;
+
+Constants* constants_new();
+void constants_free(Constants* constants);
+
+typedef struct {
+    size_t count;
+    size_t capacity;
     uint8_t* items;
     size_t*  lines;
 
-    Words* constant_words;
+    Constants* constants;
 } Bytecode;
 
 Bytecode* bytecode_new();

@@ -6,8 +6,6 @@
 #include "common.h"
 #include "objects.h"
 
-typedef uint64_t Word;
-
 // Types
 #define TYPE_NAN   0x7FF8000000000000 // 0...000
 #define TYPE_NIL   0x7FF9000000000000 // 0...001
@@ -51,6 +49,9 @@ typedef uint64_t Word;
 #define AS_OBJECT(x) ((Object*) ((x) & MASK_VALUE))
 #define AS_STRING(x) ((ObjString*) AS_OBJECT(x))
 
+typedef uint64_t Word;
+void print_word(FILE* stream, Word w, int width);
+
 static inline Word double_to_word(double num) {
     union {
         uint64_t bits;
@@ -79,16 +80,5 @@ static inline Word as_bool(Word value) {
 static inline bool is_obj_type(Word value, object_type type) {
     return IS_OBJECT(value) && AS_OBJECT(value)->type == type;
 }
-
-void print_word(FILE* stream, Word w, int width);
-
-typedef struct {
-    size_t count;
-    size_t capacity;
-    Word* items;
-} Words;
-
-Words* words_new();
-void words_free(Words* words);
 
 #endif // RUJA_WORD_H
