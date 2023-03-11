@@ -42,14 +42,16 @@ static Word token_to_word(Ruja_Token* token) {
 #pragma GCC diagnostic pop
 }
 
-static void push_word(Bytecode* bytecode, Word word) {
+static void push_word(Bytecode* bytecode, Ruja_Token* token) {
+    Word word = token_to_word(token);
+    
     switch (word & MASK_TYPE) {
-        case TYPE_NIL: add_opcode(bytecode, OP_NIL, 0); break;
+        case TYPE_NIL: add_opcode(bytecode, OP_NIL, token->line); break;
         case TYPE_BOOL: {
             if (AS_BOOL(word)) {
-                add_opcode(bytecode, OP_TRUE, 0);
+                add_opcode(bytecode, OP_TRUE, token->line);
             } else {
-                add_opcode(bytecode, OP_FALSE, 0);
+                add_opcode(bytecode, OP_FALSE, token->line);
             }
         } break;
         case TYPE_CHAR:
@@ -57,8 +59,8 @@ static void push_word(Bytecode* bytecode, Word word) {
         case TYPE_OBJ:
         default: {
             size_t index = add_constant(bytecode, word);
-            add_opcode(bytecode, OP_CONST, 0);
-            add_operand(bytecode, index, 0);
+            add_opcode(bytecode, OP_CONST, token->line);
+            add_operand(bytecode, index, token->line);
         }
     }
 }
@@ -70,17 +72,18 @@ static Ruja_Compile_Error compile_internal(Ruja_Ast ast, Bytecode* bytecode) {
             return RUJA_COMPILER_ERROR;
         }
         case AST_NODE_LITERAL: {
-            push_word(bytecode, token_to_word(ast->as.literal.tok_literal));
+            push_word(bytecode, ast->as.literal.tok_literal);
         } break;
         case AST_NODE_UNARY_OP: {
             Ruja_Compile_Error error = compile_internal(ast->as.unary_op.expression, bytecode);
             if (error != RUJA_COMPILER_OK) return error;
+            Ruja_Token* tok_unary = ast->as.unary_op.tok_unary;
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wswitch"
-            switch (ast->as.unary_op.tok_unary->kind) {
-                case RUJA_TOK_NOT: add_opcode(bytecode, OP_NOT, 0); break;
-                case RUJA_TOK_SUB: add_opcode(bytecode, OP_NEG, 0); break;
+            switch (tok_unary->kind) {
+                case RUJA_TOK_NOT: add_opcode(bytecode, OP_NOT, tok_unary->line); break;
+                case RUJA_TOK_SUB: add_opcode(bytecode, OP_NEG, tok_unary->line); break;
             }
 #pragma GCC diagnostic pop
         } break;
@@ -91,21 +94,23 @@ static Ruja_Compile_Error compile_internal(Ruja_Ast ast, Bytecode* bytecode) {
             error = compile_internal(ast->as.binary_op.right_expression, bytecode);
             if (error != RUJA_COMPILER_OK) return error;
 
+            Ruja_Token* tok_binary = ast->as.binary_op.tok_binary;
+
             #pragma GCC diagnostic push
             #pragma GCC diagnostic ignored "-Wswitch"
-            switch (ast->as.binary_op.tok_binary->kind) {
-                case RUJA_TOK_ADD : add_opcode(bytecode, OP_ADD, 0); break;
-                case RUJA_TOK_SUB : add_opcode(bytecode, OP_SUB, 0); break;
-                case RUJA_TOK_MUL : add_opcode(bytecode, OP_MUL, 0); break;
-                case RUJA_TOK_DIV : add_opcode(bytecode, OP_DIV, 0); break;
-                case RUJA_TOK_EQ  : add_opcode(bytecode, OP_EQ, 0); break;
-                case RUJA_TOK_NE  : add_opcode(bytecode, OP_NEQ, 0); break;
-                case RUJA_TOK_LT  : add_opcode(bytecode, OP_LT, 0); break;
-                case RUJA_TOK_LE  : add_opcode(bytecode, OP_LTE, 0); break;
-                case RUJA_TOK_GT  : add_opcode(bytecode, OP_GT, 0); break;
-                case RUJA_TOK_GE  : add_opcode(bytecode, OP_GTE, 0); break;
-                case RUJA_TOK_AND : add_opcode(bytecode, OP_AND, 0); break;
-                case RUJA_TOK_OR  : add_opcode(bytecode, OP_OR, 0); break;
+            switch (tok_binary->kind) {
+                case RUJA_TOK_ADD : add_opcode(bytecode, OP_ADD, tok_binary->line); break;
+                case RUJA_TOK_SUB : add_opcode(bytecode, OP_SUB, tok_binary->line); break;
+                case RUJA_TOK_MUL : add_opcode(bytecode, OP_MUL, tok_binary->line); break;
+                case RUJA_TOK_DIV : add_opcode(bytecode, OP_DIV, tok_binary->line); break;
+                case RUJA_TOK_EQ  : add_opcode(bytecode, OP_EQ, tok_binary->line); break;
+                case RUJA_TOK_NE  : add_opcode(bytecode, OP_NEQ, tok_binary->line); break;
+                case RUJA_TOK_LT  : add_opcode(bytecode, OP_LT, tok_binary->line); break;
+                case RUJA_TOK_LE  : add_opcode(bytecode, OP_LTE, tok_binary->line); break;
+                case RUJA_TOK_GT  : add_opcode(bytecode, OP_GT, tok_binary->line); break;
+                case RUJA_TOK_GE  : add_opcode(bytecode, OP_GTE, tok_binary->line); break;
+                case RUJA_TOK_AND : add_opcode(bytecode, OP_AND, tok_binary->line); break;
+                case RUJA_TOK_OR  : add_opcode(bytecode, OP_OR, tok_binary->line); break;
             }
             #pragma GCC diagnostic pop
         } break;
