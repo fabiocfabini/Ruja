@@ -63,7 +63,7 @@ ObjString* obj_string_new_no_alloc(char* chars, size_t length) {
     return obj;
 }
 
-ObjString* string_concatenate(ObjString* string1, ObjString* string2) {
+ObjString* string_add(ObjString* string1, ObjString* string2) {
     size_t length = string1->length + string2->length;
     char* chars = malloc(length + 1);
     if (chars == NULL) {
@@ -76,4 +76,12 @@ ObjString* string_concatenate(ObjString* string1, ObjString* string2) {
     chars[length] = '\0';
 
     return obj_string_new_no_alloc(chars, length);
+}
+
+bool string_equal(ObjString* string1, ObjString* string2) {
+    if (string1->length != string2->length) {
+        return false;
+    }
+
+    return memcmp(string1->chars, string2->chars, string1->length) == 0;
 }

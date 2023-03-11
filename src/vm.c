@@ -180,10 +180,7 @@ Ruja_Vm_Status vm_run(Ruja_Vm *vm) {
                     vm->stack->count--;
                     vm->ip++;
                 } else if (IS_STRING(word1)) {
-                    ObjString *string1 = AS_STRING(word1);
-                    ObjString *string2 = AS_STRING(word2);
-
-                    ObjString *string3 = string_concatenate(string1, string2);
+                    ObjString *string3 = string_add(AS_STRING(word1), AS_STRING(word2));
                     if (string3 == NULL) {
                         fprintf(stderr, RED"ERROR: "WHITE"Out of memory while concatenating strings in ip '%zu' VM.\n"RESET, vm->ip);
                         return RUJA_VM_ERROR;
@@ -295,6 +292,8 @@ Ruja_Vm_Status vm_run(Ruja_Vm *vm) {
                 } else {
                     if (IS_DOUBLE(word1)) {
                         vm->stack->items[vm->stack->count-2] = MAKE_BOOL(AS_DOUBLE(word1) == AS_DOUBLE(word2));
+                    } else if (IS_STRING(word1)) {
+                        vm->stack->items[vm->stack->count-2] = MAKE_BOOL(string_equal(AS_STRING(word1), AS_STRING(word2)));
                     } else {
                         vm->stack->items[vm->stack->count-2] = MAKE_BOOL(word1 == word2);
                     }
@@ -317,6 +316,8 @@ Ruja_Vm_Status vm_run(Ruja_Vm *vm) {
                 } else {
                     if (IS_DOUBLE(word1)) {
                         vm->stack->items[vm->stack->count-2] = MAKE_BOOL(AS_DOUBLE(word1) != AS_DOUBLE(word2));
+                    } else if (IS_STRING(word1)) {
+                        vm->stack->items[vm->stack->count-2] = MAKE_BOOL(!string_equal(AS_STRING(word1), AS_STRING(word2)));
                     } else {
                         vm->stack->items[vm->stack->count-2] = MAKE_BOOL(word1 != word2);
                     }

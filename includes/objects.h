@@ -36,6 +36,7 @@ void print_object(FILE* stream, Object* obj, int width);
 #define IS_STRING(x) is_obj_type((x), OBJ_STRING)
 ObjString* obj_string_new(const char* chars, size_t length);
 ObjString* obj_string_new_no_alloc(char* chars, size_t length);
-ObjString* string_concatenate(ObjString* string1, ObjString* string2);
+ObjString* string_add(ObjString* string1, ObjString* string2);
+bool string_equal(ObjString* string1, ObjString* string2);
 
 #endif // RUJA_OBJECTS_H
