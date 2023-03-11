@@ -4,7 +4,6 @@
 #include <stdio.h>
 
 #include "common.h"
-#include "objects.h"
 
 // Types
 #define TYPE_NAN   0x7FF8000000000000 // 0...000
@@ -29,7 +28,6 @@
 #define IS_INT(x)   (((x) & MASK_TYPE) == TYPE_INT)
 #define IS_DOUBLE(x) ((((x) & TYPE_NAN) != TYPE_NAN) && (((x) & TYPE_OBJ) != TYPE_OBJ))
 #define IS_OBJECT(x) (((x) & TYPE_OBJ) == TYPE_OBJ)
-#define IS_STRING(x) is_obj_type((x), OBJ_STRING)
 
 // Makes
 #define MAKE_NAN()     ((TYPE_NAN))
@@ -39,15 +37,12 @@
 #define MAKE_INT(x)    ((TYPE_INT  | (uint32_t) (x)))
 #define MAKE_DOUBLE(x) double_to_word(x)
 #define MAKE_OBJECT(x)   ((TYPE_OBJ | (uint64_t)(uintptr_t) (x)))
-#define MAKE_STRING(str, len) MAKE_OBJECT(object_new(OBJ_STRING, str, len))
 
 // Gets
 #define AS_CHAR(x)  ((char) ((x) & MASK_VALUE))
 #define AS_BOOL(x)  as_bool(x)
 #define AS_INT(x)   ((int32_t) ((x) & MASK_VALUE)) 
 #define AS_DOUBLE(x) word_to_double(x)
-#define AS_OBJECT(x) ((Object*) ((x) & MASK_VALUE))
-#define AS_STRING(x) ((ObjString*) AS_OBJECT(x))
 
 typedef uint64_t Word;
 void print_word(FILE* stream, Word w, int width);
@@ -75,10 +70,6 @@ static inline Word as_bool(Word value) {
         return AS_DOUBLE(value) != 0.0;
     }
     return (bool) ((value) & MASK_VALUE);
-}
-
-static inline bool is_obj_type(Word value, object_type type) {
-    return IS_OBJECT(value) && AS_OBJECT(value)->type == type;
 }
 
 #endif // RUJA_WORD_H
