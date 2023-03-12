@@ -116,16 +116,16 @@ static Ruja_Compile_Error compile_internal(Ruja_Ast ast, Ruja_Vm* vm) {
             Ruja_Compile_Error error = compile_internal(ast->as.ternary_op.condition, vm);
             if (error != RUJA_COMPILER_OK) return error;
 
-            add_opcode(bytecode, OP_JZ, 0);
+            add_opcode(bytecode, OP_JZ, ast->as.ternary_op.tok_ternary.tok_question->line);
             size_t jmp_false = bytecode->count;
-            add_operand(bytecode, 0, 0);
+            add_operand(bytecode, 0, ast->as.ternary_op.tok_ternary.tok_question->line);
 
             error = compile_internal(ast->as.ternary_op.true_expression, vm);
             if (error != RUJA_COMPILER_OK) return error;
 
-            add_opcode(bytecode, OP_JUMP, 0);
+            add_opcode(bytecode, OP_JUMP, ast->as.ternary_op.tok_ternary.tok_colon->line);
             size_t jmp = bytecode->count;
-            add_operand(bytecode, 0, 0);
+            add_operand(bytecode, 0, ast->as.ternary_op.tok_ternary.tok_colon->line);
 
             size_t operand_offset = jmp - jmp_false + 5;
             bytecode->items[jmp_false] = (uint8_t) ((operand_offset >> 24) & 0xFF);

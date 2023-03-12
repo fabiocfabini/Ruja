@@ -34,6 +34,8 @@ void ast_free(Ruja_Ast ast) {
             ast_free(ast->as.binary_op.right_expression);
             break;
         case AST_NODE_TERNARY_OP:
+            token_free(ast->as.ternary_op.tok_ternary.tok_question);
+            token_free(ast->as.ternary_op.tok_ternary.tok_colon);
             ast_free(ast->as.ternary_op.condition);
             ast_free(ast->as.ternary_op.true_expression);
             ast_free(ast->as.ternary_op.false_expression);
@@ -79,11 +81,12 @@ Ruja_Ast ast_new_binary_op(Ruja_Token* binary_token, Ruja_Ast left_expression, R
     return ast;
 }
 
-Ruja_Ast ast_new_ternary_op(Ruja_Ast condition, Ruja_Ast true_expression, Ruja_Ast false_expression) {
+Ruja_Ast ast_new_ternary_op(Ruja_Token* tok_question, Ruja_Ast condition, Ruja_Ast true_expression, Ruja_Ast false_expression) {
     Ruja_Ast ast = ast_new();
     if (ast == NULL) return NULL;
 
     ast->type = AST_NODE_TERNARY_OP;
+    ast->as.ternary_op.tok_ternary.tok_question = tok_question;
     ast->as.ternary_op.condition = condition;
     ast->as.ternary_op.true_expression = true_expression;
     ast->as.ternary_op.false_expression = false_expression;

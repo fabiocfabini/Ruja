@@ -44,12 +44,12 @@ static void maybe_free_token(Ruja_Token *token) {
         case RUJA_TOK_RPAREN     : token_free(token); return;
         case RUJA_TOK_LBRACKET   : return;
         case RUJA_TOK_RBRACKET   : return;
-        case RUJA_TOK_COLON      : token_free(token); return;
+        case RUJA_TOK_COLON      : return;
         case RUJA_TOK_SEMICOLON  : return;
         case RUJA_TOK_COMMA      : return;
         case RUJA_TOK_DOT        : return;
         case RUJA_TOK_ASSIGN     : return;
-        case RUJA_TOK_QUESTION   : token_free(token); return;
+        case RUJA_TOK_QUESTION   : return;
         case RUJA_TOK_NE         : return;
         case RUJA_TOK_LT         : return;
         case RUJA_TOK_GT         : return;
@@ -401,13 +401,14 @@ static void ternary(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
     // assert( parser->previous.kind == RUJA_TOK_QUESTION &&
     //         "This function assumes that a ternary token has been already consumed.");
 
-    Ruja_Ast ternary = ast_new_ternary_op(*ast, NULL, NULL);
+    Ruja_Ast ternary = ast_new_ternary_op(parser->previous, *ast, NULL, NULL);
 
     expression(parser, lexer, &ternary->as.ternary_op.true_expression);
 
     // assert( parser->current.kind == RUJA_TOK_COLON &&
     //         "This function assumes that a ternary token has been already consumed.");
     expect(parser, lexer, RUJA_TOK_COLON, "Expected ':' after ternary operator '?'");
+    ternary->as.ternary_op.tok_ternary.tok_colon = parser->previous;
 
     expression(parser, lexer, &ternary->as.ternary_op.false_expression);
 
