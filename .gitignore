@@ -1,7 +1,7 @@
 build/*
 exe/*
 .vscode/*
-*.pdf
+g.pdf
 *.dot
 nan.c
 input.ruja
