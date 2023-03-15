@@ -24,12 +24,13 @@ void stack_free(Stack *stack) {
     free(stack);
 }
 
-void stack_push(Stack* stack, Word word) {
+Word* stack_push(Stack* stack, Word word) {
     if (stack->count >= stack->capacity) {
         REALLOC_DA(Word, stack);
     }
 
-    stack->items[stack->count++] = word;
+    stack->items[stack->count] = word;
+    return &stack->items[stack->count++];
 }
 
 void stack_trace(Stack *stack) {

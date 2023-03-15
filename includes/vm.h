@@ -16,6 +16,7 @@ typedef struct {
     Stack* stack;
     Object* objects;
 
+    Word* sp;
     uint8_t* ip;
 } Ruja_Vm;
 

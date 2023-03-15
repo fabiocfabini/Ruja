@@ -13,7 +13,7 @@ typedef struct {
 Stack *stack_new();
 void stack_free(Stack *stack);
 
-void stack_push(Stack *stack, Word word);
+Word* stack_push(Stack *stack, Word word);
 
 void stack_trace(Stack *stack);
 
