@@ -10,6 +10,14 @@
 #include "includes/ast.h"
 #include "includes/compiler.h"
 
+#define STACK_TEST 0
+#define NAN_BOX_TEST 0
+#define BYTECODE_TEST 0
+#define LEXER_TEST 0
+#define PARSER_TEST 0
+#define AST_TEST 0
+#define COMPILER_TEST 1
+
 void shift_agrs(int* argc, char*** argv) {
     (*argc)--;
     (*argv)++;
@@ -35,7 +43,7 @@ void usage() {
     printf("  -v, --version\t\tPrint the version of Ruja.\n");
 }
 
-#if 0 // Stack test
+#if STACK_TEST
 int main() {
     Stack* stack = stack_new();
 
@@ -53,7 +61,7 @@ int main() {
 }
 #endif
 
-#if 0 // Nan Box test
+#if NAN_BOX_TEST
 int main() {
     Word w = MAKE_STRING("Hello, World!\n", 14);
     print_word(stdout, w, 0);
@@ -62,7 +70,7 @@ int main() {
 }
 #endif
 
-#if 0 // Bytecode test
+#if BYTECODE_TEST
 int main() {
     Ruja_Vm* vm = vm_new();
 
@@ -94,7 +102,7 @@ int main() {
 }
 #endif
 
-#if 0 // Lexer test
+#if LEXER_TEST
 int main(void) {
     Ruja_Lexer* lexer = lexer_new("tokens.ruja");
     if (lexer != NULL) {
@@ -118,7 +126,7 @@ int main(void) {
 }
 #endif
 
-#if 1 // Parser test
+#if PARSER_TEST
 int main(int argc, char** argv) {
     if (argc < 2) {
         usage(); return 1;
@@ -157,7 +165,7 @@ int main(int argc, char** argv) {
 }
 #endif
 
-#if 0 // AST test
+#if AST_TEST
 int main() {
     // -(1 + 2 * 3)
 
@@ -184,7 +192,7 @@ int main() {
 }
 #endif
 
-#if 0 // Compiler test
+#if COMPILER_TEST
 int main(void) {
     Ruja_Compiler* compiler = compiler_new();
     Ruja_Vm* vm = vm_new();
