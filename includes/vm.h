@@ -16,7 +16,7 @@ typedef struct {
     Stack* stack;
     Object* objects;
 
-    size_t ip;
+    uint8_t* ip;
 } Ruja_Vm;
 
 Ruja_Vm *vm_new();
