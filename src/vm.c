@@ -5,6 +5,7 @@
 
 #include "../includes/vm.h"
 #include "../includes/objects.h"
+#include "../includes/string.h"
 #include "../includes/memory.h"
 
 
