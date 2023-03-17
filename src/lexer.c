@@ -386,6 +386,7 @@ Ruja_Token* token_new(Ruja_Token_Kind kind, const char *start, size_t length, si
     token->start = start;
     token->length = length;
     token->line = line;
+    token->in_ast = false;
 
     return token;
 }

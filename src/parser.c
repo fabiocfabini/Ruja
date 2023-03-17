@@ -26,78 +26,17 @@ static void signal_lexer_error(Ruja_Parser *parser) {
  * @param lexer The lexer that holds the source file.
  * @param msg The error message.
  */
-static void parser_error(Ruja_Parser *parser, Ruja_Lexer *lexer, const char *msg) {
+static void parser_error(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Token* token, const char *msg) {
     if (parser->panic_mode)
         return;
     parser->panic_mode = true;
 
-    fprintf(stderr, "%s:%" PRIu64 ": " RED "parse error" RESET " %s got '%.*s'.\n", lexer->source, parser->previous->line, msg, (int)parser->previous->length, parser->previous->start);
+    fprintf(stderr, "%s:%" PRIu64 ": " RED "parse error" RESET " %s got '%.*s'.\n", lexer->source, token->line, msg, (int)token->length, token->start);
     parser->had_error = true;
 }
 
 static void maybe_free_token(Ruja_Token *token) {
-    switch (token->kind) {
-        case RUJA_TOK_EOF        : token_free(token); return;
-        case RUJA_TOK_LBRACE     : return;
-        case RUJA_TOK_RBRACE     : return; 
-        case RUJA_TOK_LPAREN     : token_free(token); return;
-        case RUJA_TOK_RPAREN     : token_free(token); return;
-        case RUJA_TOK_LBRACKET   : return;
-        case RUJA_TOK_RBRACKET   : return;
-        case RUJA_TOK_COLON      : return;
-        case RUJA_TOK_SEMICOLON  : return;
-        case RUJA_TOK_COMMA      : return;
-        case RUJA_TOK_DOT        : return;
-        case RUJA_TOK_ASSIGN     : return;
-        case RUJA_TOK_QUESTION   : return;
-        case RUJA_TOK_NE         : return;
-        case RUJA_TOK_LT         : return;
-        case RUJA_TOK_GT         : return;
-        case RUJA_TOK_ARROW      : return;
-        case RUJA_TOK_ADD        : return;
-        case RUJA_TOK_SUB        : return;
-        case RUJA_TOK_MUL        : return;
-        case RUJA_TOK_DIV        : return;
-        case RUJA_TOK_PERCENT    : return;
-        case RUJA_TOK_EQ         : return;
-        case RUJA_TOK_LE         : return;
-        case RUJA_TOK_GE         : return;
-        case RUJA_TOK_ADD_EQ     : return;
-        case RUJA_TOK_SUB_EQ     : return;
-        case RUJA_TOK_MUL_EQ     : return;
-        case RUJA_TOK_DIV_EQ     : return;
-        case RUJA_TOK_PERCENT_EQ : return;
-        case RUJA_TOK_AND        : return;
-        case RUJA_TOK_OR         : return;
-        case RUJA_TOK_NOT        : return;
-        case RUJA_TOK_IF         : return;
-        case RUJA_TOK_ELSE       : return;
-        case RUJA_TOK_ELIF       : return;
-        case RUJA_TOK_FOR        : return;
-        case RUJA_TOK_IN         : return;
-        case RUJA_TOK_PROC       : return;
-        case RUJA_TOK_RETURN     : return;
-        case RUJA_TOK_STRUCT     : return;
-        case RUJA_TOK_ENUM       : return;
-        case RUJA_TOK_NIL        : return;
-        case RUJA_TOK_TRUE       : return;
-        case RUJA_TOK_FALSE      : return;
-        case RUJA_TOK_LET        : return;
-        case RUJA_TOK_BREAK      : return;
-        case RUJA_TOK_CONTINUE   : return;
-        case RUJA_TOK_TYPE_I32   : return;
-        case RUJA_TOK_TYPE_F64   : return;
-        case RUJA_TOK_TYPE_BOOL  : return;
-        case RUJA_TOK_TYPE_CHAR  : return;
-        case RUJA_TOK_TYPE_STRING: return;
-        case RUJA_TOK_ID         : return;
-        case RUJA_TOK_INT        : return;
-        case RUJA_TOK_FLOAT      : return;
-        case RUJA_TOK_STRING     : return;
-        case RUJA_TOK_CHAR       : return;
-        case RUJA_TOK_ERR        : return;
-        default                  : return;
-    }
+    if (!token->in_ast) token_free(token);
 }
 
 /**
@@ -135,7 +74,7 @@ static void expect(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Token_Kind kind,
         return;
     }
 
-    parser_error(parser, lexer, msg);
+    parser_error(parser, lexer, parser->current, msg);
 }
 
 typedef enum {
@@ -408,6 +347,7 @@ static void ternary(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
     // assert( parser->current.kind == RUJA_TOK_COLON &&
     //         "This function assumes that a ternary token has been already consumed.");
     expect(parser, lexer, RUJA_TOK_COLON, "Expected ':' after ternary operator '?'");
+    parser->previous->in_ast = true;
     ternary->as.ternary_op.tok_ternary.tok_colon = parser->previous;
 
     expression(parser, lexer, &ternary->as.ternary_op.false_expression);
@@ -443,7 +383,7 @@ static void parse_precedence(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* a
     Parser_Function prefix_rule = get_rule(parser->previous->kind)->prefix;
     if (prefix_rule == NULL)
     {
-        parser_error(parser, lexer, "Expected an expression");
+        parser_error(parser, lexer, parser->previous, "Expected an expression");
         return;
     }
 
@@ -485,7 +425,7 @@ static void parse_precedence(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* a
         advance(parser, lexer);
         Parser_Function infix_rule = get_rule(parser->previous->kind)->infix;
         if (infix_rule == NULL) {
-            parser_error(parser, lexer, "Expected binary operator");
+            parser_error(parser, lexer, parser->previous, "Expected binary operator");
             return;
         }
         infix_rule(parser, lexer, ast);
@@ -504,10 +444,8 @@ bool parse(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
     }
     expression(parser, lexer, &(*ast)->as.expr.expression);
     expect(parser, lexer, RUJA_TOK_EOF, "Expected end of file");
-    if (parser->previous->kind == RUJA_TOK_EOF) {
-        token_free(parser->previous);
-        token_free(parser->current);
-    }
+    maybe_free_token(parser->previous);
+    maybe_free_token(parser->current);
 
     return !parser->had_error;
 }

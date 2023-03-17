@@ -43,6 +43,7 @@ typedef struct {
     const char *start;
     size_t length;
     size_t line;
+    bool in_ast;
 } Ruja_Token;
 
 Ruja_Token* token_new(Ruja_Token_Kind kind, const char *start, size_t length, size_t line);

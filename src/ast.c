@@ -55,6 +55,7 @@ Ruja_Ast ast_new_literal(Ruja_Token* literal_token) {
     ast->type = AST_NODE_LITERAL;
     ast->as.literal.tok_literal = literal_token;
 
+    literal_token->in_ast = true;
     return ast;
 }
 
@@ -66,6 +67,7 @@ Ruja_Ast ast_new_unary_op(Ruja_Token* unary_token, Ruja_Ast expression) {
     ast->as.unary_op.tok_unary = unary_token;
     ast->as.unary_op.expression = expression;
 
+    unary_token->in_ast = true;
     return ast;
 }
 
@@ -78,6 +80,7 @@ Ruja_Ast ast_new_binary_op(Ruja_Token* binary_token, Ruja_Ast left_expression, R
     ast->as.binary_op.left_expression = left_expression;
     ast->as.binary_op.right_expression = right_expression;
 
+    binary_token->in_ast = true;
     return ast;
 }
 
@@ -91,6 +94,7 @@ Ruja_Ast ast_new_ternary_op(Ruja_Token* tok_question, Ruja_Ast condition, Ruja_A
     ast->as.ternary_op.true_expression = true_expression;
     ast->as.ternary_op.false_expression = false_expression;
 
+    tok_question->in_ast = true;
     return ast;
 }
 
