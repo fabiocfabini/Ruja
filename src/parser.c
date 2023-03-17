@@ -455,10 +455,15 @@ static void typed_declaration(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *
                     // This is a typed declaration
                     *ast = ast_new_typed_decl(parser->previous, ast_new_identifier(tok_id));
                 } break;
-                case RUJA_TOK_ASSIGN: {
+                case RUJA_TOK_ASSIGN:
+                case RUJA_TOK_ADD_EQ:
+                case RUJA_TOK_SUB_EQ:
+                case RUJA_TOK_MUL_EQ:
+                case RUJA_TOK_DIV_EQ: {
                     // This is a typed declaration with an assignment
-                    parser_error(parser, lexer, parser->current, "Typed declarations with assignment are not yet supported");
-                    return;
+                    *ast = ast_new_typed_decl_assign(parser->previous, parser->current, ast_new_identifier(tok_id), ast_new_expression(NULL));
+                    advance(parser, lexer);
+                    expression(parser, lexer, &(*ast)->as.typed_decl_assign.expression->as.expr.expression);
                 } break;
                 default: {
                     parser_error(parser, lexer, parser->current, "Expected '=' or ';' after type");
@@ -476,6 +481,17 @@ static void typed_declaration(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *
 #pragma GCC diagnostic pop
 }
 
+static void inferred_declaration(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
+    // previous is the identifier and current is the equal sign
+    Ruja_Token* tok_id = parser->previous;
+    tok_id->in_ast = true; // signal that this token should be in the AST. If something goes wrong it is this function's responsibility to free it
+    advance(parser, lexer);
+
+    // the next token must be an expression
+    *ast = ast_new_inferred_decl_assign(parser->previous, ast_new_identifier(tok_id), ast_new_expression(NULL));
+    expression(parser, lexer, &(*ast)->as.inferred_decl_assign.expression->as.expr.expression);
+}
+
 static void declaration(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
     expect(parser, lexer, RUJA_TOK_ID, "Expected identifier after 'let' keyword");
     if (!parser->had_error) {
@@ -484,6 +500,14 @@ static void declaration(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
         switch (parser->current->kind) {
             case RUJA_TOK_COLON: {
                 typed_declaration(parser, lexer, ast);
+            } break;
+            case RUJA_TOK_ASSIGN:
+            case RUJA_TOK_ADD_EQ:
+            case RUJA_TOK_SUB_EQ:
+            case RUJA_TOK_MUL_EQ:
+            case RUJA_TOK_DIV_EQ:{
+                // This is an inferred declaration with an assignment
+                inferred_declaration(parser, lexer, ast);
             } break;
             default: {
                 parser_error(parser, lexer, parser->current, "Must specify type of variable. Expected ':' followed by a type");

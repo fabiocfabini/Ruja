@@ -50,6 +50,17 @@ void ast_free(Ruja_Ast ast) {
             token_free(ast->as.typed_decl.tok_dtype);
             ast_free(ast->as.typed_decl.identifier);
             break;
+        case AST_NODE_STMT_TYPED_DECL_ASSIGN:
+            token_free(ast->as.typed_decl_assign.tok_dtype);
+            token_free(ast->as.typed_decl_assign.tok_assign);
+            ast_free(ast->as.typed_decl_assign.identifier);
+            ast_free(ast->as.typed_decl_assign.expression);
+            break;
+        case AST_NODE_STMT_INFERRED_DECL_ASSIGN:
+            token_free(ast->as.inferred_decl_assign.tok_assign);
+            ast_free(ast->as.inferred_decl_assign.identifier);
+            ast_free(ast->as.inferred_decl_assign.expression);
+            break;
         case AST_NODE_STMT:
             ast_free(ast->as.stmt.statement);
             break;
@@ -141,6 +152,34 @@ Ruja_Ast ast_new_typed_decl(Ruja_Token* dtype_token, Ruja_Ast identifier) {
     return ast;
 }
 
+Ruja_Ast ast_new_typed_decl_assign(Ruja_Token* dtype_token, Ruja_Token* assign_token, Ruja_Ast identifier, Ruja_Ast expression) {
+    Ruja_Ast ast = ast_new();
+    if (ast == NULL) return NULL;
+
+    ast->type = AST_NODE_STMT_TYPED_DECL_ASSIGN;
+    ast->as.typed_decl_assign.tok_dtype = dtype_token;
+    ast->as.typed_decl_assign.tok_assign = assign_token;
+    ast->as.typed_decl_assign.identifier = identifier;
+    ast->as.typed_decl_assign.expression = expression;
+
+    dtype_token->in_ast = true;
+    assign_token->in_ast = true;
+    return ast;
+}
+
+Ruja_Ast ast_new_inferred_decl_assign(Ruja_Token* assign_token, Ruja_Ast identifier, Ruja_Ast expression) {
+    Ruja_Ast ast = ast_new();
+    if (ast == NULL) return NULL;
+
+    ast->type = AST_NODE_STMT_INFERRED_DECL_ASSIGN;
+    ast->as.inferred_decl_assign.tok_assign = assign_token;
+    ast->as.inferred_decl_assign.identifier = identifier;
+    ast->as.inferred_decl_assign.expression = expression;
+
+    assign_token->in_ast = true;
+    return ast;
+}
+
 Ruja_Ast ast_new_stmt(Ruja_Ast statement) {
     Ruja_Ast ast = ast_new();
     if (ast == NULL) return NULL;
@@ -149,6 +188,26 @@ Ruja_Ast ast_new_stmt(Ruja_Ast statement) {
     ast->as.stmt.statement = statement;
 
     return ast;
+}
+
+static const char* assign_to_string(Ruja_Token_Kind kind) {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wswitch-enum"
+    switch (kind) {
+        case RUJA_TOK_ASSIGN:
+            return "=";
+        case RUJA_TOK_ADD_EQ:
+            return "+=";
+        case RUJA_TOK_SUB_EQ:
+            return "-=";
+        case RUJA_TOK_MUL_EQ:
+            return "*=";
+        case RUJA_TOK_DIV_EQ:
+            return "/=";
+        default:
+            return "unknown";
+    }
+#pragma GCC diagnostic pop
 }
 
 static const char* type_to_string(Ruja_Token_Kind kind) {
@@ -370,6 +429,26 @@ static void ast_dot_internal(Ruja_Ast ast, FILE* file, size_t* id) {
             dot_node(file, *id, type_to_string(ast->as.typed_decl.tok_dtype->kind), ARITHMETIC_COLOR, "filled");
             dot_arrow(file, root_id, increment(id), "identifier");
             ast_dot_internal(ast->as.typed_decl.identifier, file, id);
+            break;
+        case AST_NODE_STMT_TYPED_DECL_ASSIGN:
+            dot_node(file, root_id, "TypedDeclarationAssignment", STATEMENT_COLOR, "filled");
+            dot_arrow(file, root_id, increment(id), "type");
+            dot_node(file, *id, type_to_string(ast->as.typed_decl_assign.tok_dtype->kind), ARITHMETIC_COLOR, "filled");
+            dot_arrow(file, root_id, increment(id), "assign");
+            dot_node(file, *id, assign_to_string(ast->as.typed_decl_assign.tok_assign->kind), ARITHMETIC_COLOR, "filled");
+            dot_arrow(file, root_id, increment(id), "identifier");
+            ast_dot_internal(ast->as.typed_decl_assign.identifier, file, id);
+            dot_arrow(file, root_id, increment(id), "expression");
+            ast_dot_internal(ast->as.typed_decl_assign.expression, file, id);
+            break;
+        case AST_NODE_STMT_INFERRED_DECL_ASSIGN:
+            dot_node(file, root_id, "InferredDeclarationAssignment", STATEMENT_COLOR, "filled");
+            dot_arrow(file, root_id, increment(id), "identifier");
+            ast_dot_internal(ast->as.inferred_decl_assign.identifier, file, id);
+            dot_arrow(file, root_id, increment(id), "assign");
+            dot_node(file, *id, assign_to_string(ast->as.inferred_decl_assign.tok_assign->kind), ARITHMETIC_COLOR, "filled");
+            dot_arrow(file, root_id, increment(id), "expression");
+            ast_dot_internal(ast->as.inferred_decl_assign.expression, file, id);
             break;
         case AST_NODE_STMT:
             dot_node(file, root_id, "Statement", STATEMENT_COLOR, "filled");
