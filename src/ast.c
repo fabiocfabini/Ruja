@@ -46,6 +46,11 @@ void ast_free(Ruja_Ast ast) {
         case AST_NODE_EXPRESSION:
             ast_free(ast->as.expr.expression);
             break;
+        case AST_NODE_STMT_ASSIGN:
+            token_free(ast->as.assign.tok_assign);
+            ast_free(ast->as.assign.identifier);
+            ast_free(ast->as.assign.expression);
+            break;
         case AST_NODE_STMT_TYPED_DECL:
             token_free(ast->as.typed_decl.tok_dtype);
             ast_free(ast->as.typed_decl.identifier);
@@ -137,6 +142,19 @@ Ruja_Ast ast_new_expression(Ruja_Ast expression) {
     ast->type = AST_NODE_EXPRESSION;
     ast->as.expr.expression = expression;
 
+    return ast;
+}
+
+Ruja_Ast ast_new_assign(Ruja_Token* assign_token, Ruja_Ast identifier, Ruja_Ast expression) {
+    Ruja_Ast ast = ast_new();
+    if (ast == NULL) return NULL;
+
+    ast->type = AST_NODE_STMT_ASSIGN;
+    ast->as.assign.tok_assign = assign_token;
+    ast->as.assign.identifier = identifier;
+    ast->as.assign.expression = expression;
+
+    assign_token->in_ast = true;
     return ast;
 }
 
@@ -422,6 +440,13 @@ static void ast_dot_internal(Ruja_Ast ast, FILE* file, size_t* id) {
             dot_node(file, root_id, "Expression", EXPRESSION_COLOR, "filled");
             dot_arrow(file, root_id, increment(id), "expression");
             ast_dot_internal(ast->as.expr.expression, file, id);
+            break;
+        case AST_NODE_STMT_ASSIGN:
+            dot_node(file, root_id, "Assignment", STATEMENT_COLOR, "filled");
+            dot_arrow(file, root_id, increment(id), "identifier");
+            ast_dot_internal(ast->as.assign.identifier, file, id);
+            dot_arrow(file, root_id, increment(id), "expression");
+            ast_dot_internal(ast->as.assign.expression, file, id);
             break;
         case AST_NODE_STMT_TYPED_DECL:
             dot_node(file, root_id, "TypedDeclaration", STATEMENT_COLOR, "filled");

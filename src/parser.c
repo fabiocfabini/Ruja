@@ -516,6 +516,27 @@ static void declaration(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
     #pragma GCC diagnostic pop
     }
 }
+
+static void assignment(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wswitch-enum"
+    switch (parser->current->kind) {
+        case RUJA_TOK_ASSIGN:
+        case RUJA_TOK_ADD_EQ:
+        case RUJA_TOK_SUB_EQ:
+        case RUJA_TOK_MUL_EQ:
+        case RUJA_TOK_DIV_EQ: {
+            *ast = ast_new_assign(parser->current, ast_new_identifier(parser->previous), ast_new_expression(NULL));
+            advance(parser, lexer);
+            expression(parser, lexer, &(*ast)->as.assign.expression->as.expr.expression);
+        } break;
+        default: {
+            parser_error(parser, lexer, parser->current, "Expected assignment operator");
+        } break;
+    }
+#pragma GCC diagnostic pop
+}
+
 static void statement(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
     advance(parser, lexer);
 
@@ -525,6 +546,10 @@ static void statement(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
         case RUJA_TOK_LET: {
             declaration(parser, lexer, ast);
             expect(parser, lexer, RUJA_TOK_SEMICOLON, "Expected ';' after declaration");
+        } break;
+        case RUJA_TOK_ID: {
+            assignment(parser, lexer, ast);
+            expect(parser, lexer, RUJA_TOK_SEMICOLON, "Expected ';' after assignment");
         } break;
         default: {
             parser_error(parser, lexer, parser->previous, "Expected a statement");
