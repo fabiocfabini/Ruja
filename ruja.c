@@ -14,9 +14,9 @@
 #define NAN_BOX_TEST 0
 #define BYTECODE_TEST 0
 #define LEXER_TEST 0
-#define PARSER_TEST 0
+#define PARSER_TEST 1
 #define AST_TEST 0
-#define COMPILER_TEST 1
+#define COMPILER_TEST 0
 
 void shift_agrs(int* argc, char*** argv) {
     (*argc)--;

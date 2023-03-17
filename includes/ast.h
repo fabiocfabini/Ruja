@@ -34,6 +34,7 @@ const char *ast_binary_op_type_to_string(ast_binary_op_type type);
 typedef enum {
     AST_NODE_EMPTY,
     AST_NODE_LITERAL,
+    AST_NODE_IDENTIFIER,
     AST_NODE_UNARY_OP,
     AST_NODE_BINARY_OP,
     AST_NODE_TERNARY_OP,
@@ -46,6 +47,9 @@ typedef struct Ruja_Ast_Node {
         struct {
             Ruja_Token* tok_literal;
         } literal;
+        struct {
+            Ruja_Token* tok_identifier;
+        } identifier;
         struct {
             Ruja_Token* tok_unary;
             struct Ruja_Ast_Node *expression;
@@ -74,6 +78,7 @@ Ruja_Ast ast_new();
 void ast_free(Ruja_Ast ast);
 
 Ruja_Ast ast_new_literal(Ruja_Token* literal_token);
+Ruja_Ast ast_new_identifier(Ruja_Token* identifier_token);
 Ruja_Ast ast_new_unary_op(Ruja_Token* unary_token, Ruja_Ast expression);
 Ruja_Ast ast_new_binary_op(Ruja_Token* binary_token, Ruja_Ast left_expression, Ruja_Ast right_expression);
 Ruja_Ast ast_new_ternary_op(Ruja_Token* tok_question, Ruja_Ast condition, Ruja_Ast true_expression, Ruja_Ast false_expression);

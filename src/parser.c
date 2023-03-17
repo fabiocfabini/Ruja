@@ -267,7 +267,7 @@ static void identifier(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
     UNUSED(parser);
     UNUSED(ast);
     
-    NOT_IMPLEMENTED("Identifier parsing", __FILE__, __LINE__);
+    (*ast) = ast_new_identifier(parser->previous);
 }
 
 /**

@@ -24,6 +24,9 @@ void ast_free(Ruja_Ast ast) {
         case AST_NODE_LITERAL:
             token_free(ast->as.literal.tok_literal);
             break;
+        case AST_NODE_IDENTIFIER:
+            token_free(ast->as.identifier.tok_identifier);
+            break;
         case AST_NODE_UNARY_OP:
             token_free(ast->as.unary_op.tok_unary);
             ast_free(ast->as.unary_op.expression);
@@ -56,6 +59,17 @@ Ruja_Ast ast_new_literal(Ruja_Token* literal_token) {
     ast->as.literal.tok_literal = literal_token;
 
     literal_token->in_ast = true;
+    return ast;
+}
+
+Ruja_Ast ast_new_identifier(Ruja_Token* identifier_token) {
+    Ruja_Ast ast = ast_new();
+    if (ast == NULL) return NULL;
+
+    ast->type = AST_NODE_IDENTIFIER;
+    ast->as.identifier.tok_identifier = identifier_token;
+
+    identifier_token->in_ast = true;
     return ast;
 }
 
@@ -201,6 +215,7 @@ static void print_token_word(FILE* file, Ruja_Token* token) {
         case RUJA_TOK_CHAR: fprintf(file, "%c", *(token->start)); break;
         case RUJA_TOK_TRUE: fprintf(file, "%.*s", (int) token->length, token->start); break;
         case RUJA_TOK_FALSE: fprintf(file, "%.*s", (int) token->length, token->start); break;
+        case RUJA_TOK_ID: fprintf(file, "%.*s", (int) token->length, token->start); break;
         case RUJA_TOK_STRING: fprintf(file, "%.*s", (int) token->length, token->start); break;
         case RUJA_TOK_NIL: fprintf(file, "%.*s", (int) token->length, token->start); break;
         default: fprintf(file, "UNKNOWN");
@@ -251,6 +266,7 @@ static void ast_dot_internal(Ruja_Ast ast, FILE* file, size_t* id) {
 #define EXPRESSION_COLOR "#CCE6FF"
 #define LITERAL_COLOR "#CCFFCC"
 #define ARITHMETIC_COLOR "#FFCCCC"
+#define IDENTIFIER_COLOR "#FFFFCC"
     if (ast == NULL) return;
 
     size_t root_id = *id;
@@ -262,6 +278,11 @@ static void ast_dot_internal(Ruja_Ast ast, FILE* file, size_t* id) {
             dot_node(file, root_id, "Literal", EXPRESSION_COLOR, "filled");
             dot_arrow(file, root_id, increment(id), "value");
             dot_node_word(file, *id, ast->as.literal.tok_literal, LITERAL_COLOR, "filled");
+            break;
+        case AST_NODE_IDENTIFIER:
+            dot_node(file, root_id, "Identifier", EXPRESSION_COLOR, "filled");
+            dot_arrow(file, root_id, increment(id), "name");
+            dot_node_word(file, *id, ast->as.literal.tok_literal, IDENTIFIER_COLOR, "filled");
             break;
         case AST_NODE_UNARY_OP:
             dot_node(file, root_id, "UnaryOp", EXPRESSION_COLOR, "filled");
@@ -304,6 +325,7 @@ static void ast_dot_internal(Ruja_Ast ast, FILE* file, size_t* id) {
 #undef EXPRESSION_COLOR
 #undef LITERAL_COLOR
 #undef ARITHMETIC_COLOR
+#undef IDENTIFIER_COLOR
 }
 
 void ast_dot(Ruja_Ast ast, FILE *file) {
