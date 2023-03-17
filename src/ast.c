@@ -46,6 +46,13 @@ void ast_free(Ruja_Ast ast) {
         case AST_NODE_EXPRESSION:
             ast_free(ast->as.expr.expression);
             break;
+        case AST_NODE_STMT_TYPED_DECL:
+            token_free(ast->as.typed_decl.tok_dtype);
+            ast_free(ast->as.typed_decl.identifier);
+            break;
+        case AST_NODE_STMT:
+            ast_free(ast->as.stmt.statement);
+            break;
     }
 
     free(ast);
@@ -120,6 +127,48 @@ Ruja_Ast ast_new_expression(Ruja_Ast expression) {
     ast->as.expr.expression = expression;
 
     return ast;
+}
+
+Ruja_Ast ast_new_typed_decl(Ruja_Token* dtype_token, Ruja_Ast identifier) {
+    Ruja_Ast ast = ast_new();
+    if (ast == NULL) return NULL;
+
+    ast->type = AST_NODE_STMT_TYPED_DECL;
+    ast->as.typed_decl.tok_dtype = dtype_token;
+    ast->as.typed_decl.identifier = identifier;
+
+    dtype_token->in_ast = true;
+    return ast;
+}
+
+Ruja_Ast ast_new_stmt(Ruja_Ast statement) {
+    Ruja_Ast ast = ast_new();
+    if (ast == NULL) return NULL;
+
+    ast->type = AST_NODE_STMT;
+    ast->as.stmt.statement = statement;
+
+    return ast;
+}
+
+static const char* type_to_string(Ruja_Token_Kind kind) {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wswitch-enum"
+    switch (kind) {
+        case RUJA_TOK_TYPE_BOOL:
+            return "bool";
+        case RUJA_TOK_TYPE_CHAR:
+            return "char";
+        case RUJA_TOK_TYPE_I32:
+            return "int";
+        case RUJA_TOK_TYPE_F64:
+            return "float";
+        case RUJA_TOK_TYPE_STRING:
+            return "string";
+        default:
+            return "unknown";
+    }
+#pragma GCC diagnostic pop
 }
 
 /**
@@ -263,6 +312,7 @@ static void ast_dot_internal(Ruja_Ast ast, FILE* file, size_t* id) {
 #define DARK_RED "#CC0000"
 
 // Light colors
+#define STATEMENT_COLOR "#F6CD91"
 #define EXPRESSION_COLOR "#CCE6FF"
 #define LITERAL_COLOR "#CCFFCC"
 #define ARITHMETIC_COLOR "#FFCCCC"
@@ -314,6 +364,18 @@ static void ast_dot_internal(Ruja_Ast ast, FILE* file, size_t* id) {
             dot_arrow(file, root_id, increment(id), "expression");
             ast_dot_internal(ast->as.expr.expression, file, id);
             break;
+        case AST_NODE_STMT_TYPED_DECL:
+            dot_node(file, root_id, "TypedDeclaration", STATEMENT_COLOR, "filled");
+            dot_arrow(file, root_id, increment(id), "type");
+            dot_node(file, *id, type_to_string(ast->as.typed_decl.tok_dtype->kind), ARITHMETIC_COLOR, "filled");
+            dot_arrow(file, root_id, increment(id), "identifier");
+            ast_dot_internal(ast->as.typed_decl.identifier, file, id);
+            break;
+        case AST_NODE_STMT:
+            dot_node(file, root_id, "Statement", STATEMENT_COLOR, "filled");
+            dot_arrow(file, root_id, increment(id), "statement");
+            ast_dot_internal(ast->as.stmt.statement, file, id);
+            break;
     }
 
 // Dark colors
@@ -322,6 +384,7 @@ static void ast_dot_internal(Ruja_Ast ast, FILE* file, size_t* id) {
 #undef DARK_RED
 
 // Light colors
+#undef STATEMENT_COLOR
 #undef EXPRESSION_COLOR
 #undef LITERAL_COLOR
 #undef ARITHMETIC_COLOR

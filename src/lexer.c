@@ -206,6 +206,10 @@ static Ruja_Token* tok_identifier(Ruja_Lexer *lexer) {
         lexer->line
     );
 
+#if DEBUG_TOKENS
+    printf("Creating Token: ");
+    token_to_string(result);
+#endif
     rebase(lexer);
     return result;
 }
@@ -233,6 +237,10 @@ static Ruja_Token* tok_number(Ruja_Lexer* lexer) {
             lexer->line
         );
 
+#if DEBUG_TOKENS
+        printf("Creating Token: ");
+        token_to_string(result);
+#endif
         rebase(lexer);
         return result;
     }
@@ -244,6 +252,10 @@ static Ruja_Token* tok_number(Ruja_Lexer* lexer) {
         lexer->line
     );
 
+#if DEBUG_TOKENS
+    printf("Creating Token: ");
+    token_to_string(result);
+#endif
     rebase(lexer);
     return result;
 }
@@ -392,6 +404,10 @@ Ruja_Token* token_new(Ruja_Token_Kind kind, const char *start, size_t length, si
 }
 
 void token_free(Ruja_Token *token) {
+#if DEBUG_TOKENS
+    printf("Freeing Token: ");
+    token_to_string(token);
+#endif
     free(token);
 }
 
@@ -545,6 +561,10 @@ Ruja_Token* next_token(Ruja_Lexer *lexer) {
         default: { err_lexer(lexer, result, "Unrecognized token"); advance(lexer);} break;
     }
 
+#if DEBUG_TOKENS
+    printf("Creating Token: ");
+    token_to_string(result);
+#endif
     rebase(lexer);
     return result;
 }

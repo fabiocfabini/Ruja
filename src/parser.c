@@ -432,6 +432,83 @@ static void parse_precedence(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* a
     }
 }
 
+static void typed_declaration(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
+    // previous is the identifier and current is the colon
+    Ruja_Token* tok_id = parser->previous;
+    tok_id->in_ast = true; // signal that this token should be in the AST. If something goes wrong it is this function's responsibility to free it
+    advance(parser, lexer);
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wswitch"
+#pragma GCC diagnostic ignored "-Wswitch-enum"
+    // the next token must be a type
+    switch (parser->current->kind) {
+        case RUJA_TOK_TYPE_BOOL:
+        case RUJA_TOK_TYPE_CHAR:
+        case RUJA_TOK_TYPE_I32:
+        case RUJA_TOK_TYPE_F64:
+        case RUJA_TOK_TYPE_STRING: {
+            advance(parser, lexer);
+            // the next token must be either an equal sign or a semicolon
+            switch (parser->current->kind) {
+                case RUJA_TOK_SEMICOLON: {
+                    // This is a typed declaration
+                    *ast = ast_new_typed_decl(parser->previous, ast_new_identifier(tok_id));
+                } break;
+                case RUJA_TOK_ASSIGN: {
+                    // This is a typed declaration with an assignment
+                    parser_error(parser, lexer, parser->current, "Typed declarations with assignment are not yet supported");
+                    return;
+                } break;
+                default: {
+                    parser_error(parser, lexer, parser->current, "Expected '=' or ';' after type");
+                    token_free(tok_id);
+                    return;
+                } break;
+            }
+        } break;
+        default: {
+            parser_error(parser, lexer, parser->current, "Expected type after ':'");
+            token_free(tok_id);
+            return;
+        } break;
+    }
+#pragma GCC diagnostic pop
+}
+
+static void declaration(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
+    expect(parser, lexer, RUJA_TOK_ID, "Expected identifier after 'let' keyword");
+    if (!parser->had_error) {
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wswitch-enum"
+        switch (parser->current->kind) {
+            case RUJA_TOK_COLON: {
+                typed_declaration(parser, lexer, ast);
+            } break;
+            default: {
+                parser_error(parser, lexer, parser->current, "Must specify type of variable. Expected ':' followed by a type");
+            } break;
+        }
+    #pragma GCC diagnostic pop
+    }
+}
+static void statement(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
+    advance(parser, lexer);
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wswitch-enum"
+    switch (parser->previous->kind) {
+        case RUJA_TOK_LET: {
+            declaration(parser, lexer, ast);
+            expect(parser, lexer, RUJA_TOK_SEMICOLON, "Expected ';' after declaration");
+        } break;
+        default: {
+            parser_error(parser, lexer, parser->previous, "Expected a statement");
+        } break;
+    }
+#pragma GCC diagnostic pop
+}
+
 bool parse(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
     // quick start the parser
     advance(parser, lexer);
@@ -442,7 +519,7 @@ bool parse(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
         fprintf(stderr, "Null AST passed to parser\n");
         return false;
     }
-    expression(parser, lexer, &(*ast)->as.expr.expression);
+    statement(parser, lexer, &(*ast)->as.stmt.statement);
     expect(parser, lexer, RUJA_TOK_EOF, "Expected end of file");
     maybe_free_token(parser->previous);
     maybe_free_token(parser->current);

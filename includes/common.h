@@ -16,5 +16,6 @@
     } while (0)
 
 #define UNUSED(x) (void)(x)
+#define DEBUG_TOKENS 0
 
 #endif // RUJA_COMMON_H
