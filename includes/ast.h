@@ -44,7 +44,7 @@ typedef enum {
     AST_NODE_STMT_TYPED_DECL,
     AST_NODE_STMT_TYPED_DECL_ASSIGN,
     AST_NODE_STMT_INFERRED_DECL_ASSIGN,
-    AST_NODE_STMT,
+    AST_NODE_STMTS,
 } ast_node_type;
 
 typedef struct Ruja_Ast_Node {
@@ -99,7 +99,8 @@ typedef struct Ruja_Ast_Node {
         } inferred_decl_assign;
         struct {
             struct Ruja_Ast_Node *statement;
-        } stmt;
+            struct Ruja_Ast_Node *next;
+        } stmts;
     } as;
 } *Ruja_Ast;
 
@@ -116,7 +117,7 @@ Ruja_Ast ast_new_assign(Ruja_Token* assign_token, Ruja_Ast identifier, Ruja_Ast 
 Ruja_Ast ast_new_typed_decl(Ruja_Token* dtype_token, Ruja_Ast identifier);
 Ruja_Ast ast_new_typed_decl_assign(Ruja_Token* dtype_token, Ruja_Token* assign_token, Ruja_Ast identifier, Ruja_Ast expression);
 Ruja_Ast ast_new_inferred_decl_assign(Ruja_Token* assign_token, Ruja_Ast identifier, Ruja_Ast expression);
-Ruja_Ast ast_new_stmt(Ruja_Ast statement);
+Ruja_Ast ast_new_stmt(Ruja_Ast statement, Ruja_Ast next);
 
 void ast_dot(Ruja_Ast ast, FILE *file);
 

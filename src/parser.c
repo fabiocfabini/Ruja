@@ -558,6 +558,21 @@ static void statement(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
 #pragma GCC diagnostic pop
 }
 
+static void statements(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
+    Ruja_Ast *current = ast;
+    while (parser->current->kind != RUJA_TOK_EOF) {
+        statement(parser, lexer, &(*current)->as.stmts.statement);
+        (*current)->as.stmts.next = ast_new_stmt(NULL, NULL);
+        current = &(*current)->as.stmts.next;
+    }
+
+    // If the last statement was a statement with no next, then we need to free it
+    if ((*current)->as.stmts.next == NULL) {
+        ast_free(*current);
+        *current = NULL;
+    }
+}
+
 bool parse(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
     // quick start the parser
     advance(parser, lexer);
@@ -568,7 +583,7 @@ bool parse(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
         fprintf(stderr, "Null AST passed to parser\n");
         return false;
     }
-    statement(parser, lexer, &(*ast)->as.stmt.statement);
+    statements(parser, lexer, ast);
     expect(parser, lexer, RUJA_TOK_EOF, "Expected end of file");
     maybe_free_token(parser->previous);
     maybe_free_token(parser->current);

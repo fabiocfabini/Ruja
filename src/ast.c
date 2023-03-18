@@ -66,8 +66,9 @@ void ast_free(Ruja_Ast ast) {
             ast_free(ast->as.inferred_decl_assign.identifier);
             ast_free(ast->as.inferred_decl_assign.expression);
             break;
-        case AST_NODE_STMT:
-            ast_free(ast->as.stmt.statement);
+        case AST_NODE_STMTS:
+            ast_free(ast->as.stmts.statement);
+            ast_free(ast->as.stmts.next);
             break;
     }
 
@@ -198,12 +199,13 @@ Ruja_Ast ast_new_inferred_decl_assign(Ruja_Token* assign_token, Ruja_Ast identif
     return ast;
 }
 
-Ruja_Ast ast_new_stmt(Ruja_Ast statement) {
+Ruja_Ast ast_new_stmt(Ruja_Ast statement, Ruja_Ast next) {
     Ruja_Ast ast = ast_new();
     if (ast == NULL) return NULL;
 
-    ast->type = AST_NODE_STMT;
-    ast->as.stmt.statement = statement;
+    ast->type = AST_NODE_STMTS;
+    ast->as.stmts.statement = statement;
+    ast->as.stmts.next = next;
 
     return ast;
 }
@@ -475,10 +477,14 @@ static void ast_dot_internal(Ruja_Ast ast, FILE* file, size_t* id) {
             dot_arrow(file, root_id, increment(id), "expression");
             ast_dot_internal(ast->as.inferred_decl_assign.expression, file, id);
             break;
-        case AST_NODE_STMT:
-            dot_node(file, root_id, "Statement", STATEMENT_COLOR, "filled");
+        case AST_NODE_STMTS:
+            dot_node(file, root_id, "Statements", STATEMENT_COLOR, "filled");
             dot_arrow(file, root_id, increment(id), "statement");
-            ast_dot_internal(ast->as.stmt.statement, file, id);
+            ast_dot_internal(ast->as.stmts.statement, file, id);
+            if (ast->as.stmts.next != NULL) {
+                dot_arrow(file, root_id, increment(id), "next");
+                ast_dot_internal(ast->as.stmts.next, file, id);
+            }
             break;
     }
 
