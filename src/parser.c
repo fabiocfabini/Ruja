@@ -77,6 +77,15 @@ static void expect(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Token_Kind kind,
     parser_error(parser, lexer, parser->current, msg);
 }
 
+static void expect_either(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Token_Kind expected[2], const char *msg) {
+    if (parser->current->kind == expected[0] || parser->current->kind == expected[1]) {
+        advance(parser, lexer);
+        return;
+    }
+
+    parser_error(parser, lexer, parser->current, msg);
+}
+
 typedef enum {
     PREC_NONE,
     PREC_ASSIGNMENT, // =
@@ -146,7 +155,7 @@ static Parse_Rule rules[] = {
     [RUJA_TOK_AND]        = {NULL, binary, PREC_AND},
     [RUJA_TOK_OR]         = {NULL, binary, PREC_OR},
     [RUJA_TOK_NOT]        = {unary, NULL, PREC_UNARY},
-    [RUJA_TOK_IF]         = {NULL, NULL, PREC_NONE},
+    [RUJA_TOK_IF]         = {NULL, ternary, PREC_QUESTION},
     [RUJA_TOK_ELSE]       = {NULL, NULL, PREC_NONE},
     [RUJA_TOK_ELIF]       = {NULL, NULL, PREC_NONE},
     [RUJA_TOK_FOR]        = {NULL, NULL, PREC_NONE},
@@ -340,17 +349,25 @@ static void ternary(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
     // assert( parser->previous.kind == RUJA_TOK_QUESTION &&
     //         "This function assumes that a ternary token has been already consumed.");
 
-    Ruja_Ast ternary = ast_new_ternary_op(parser->previous, *ast, NULL, NULL);
+    Ruja_Ast ternary = ast_new_ternary_op(parser->previous, NULL, *ast, NULL, NULL);
 
     expression(parser, lexer, &ternary->as.ternary_op.true_expression);
 
     // assert( parser->current.kind == RUJA_TOK_COLON &&
     //         "This function assumes that a ternary token has been already consumed.");
-    expect(parser, lexer, RUJA_TOK_COLON, "Expected ':' after ternary operator '?'");
-    parser->previous->in_ast = true;
-    ternary->as.ternary_op.tok_ternary.tok_colon = parser->previous;
+    Ruja_Token_Kind expected[] = {RUJA_TOK_COLON, RUJA_TOK_ELSE};
+    expect_either(parser, lexer, expected, "Expected ':' or 'else' after ternary operator '?'/'if'");
+    if (!parser->had_error) {
+        // If an error occurred, it means that the previous token was not a colon nor an else
+        // We must not allow the previous token to be in the AST as a tok_ternary.tok_colon
+        // A risk of double free would occur in case the previous token was a literal or identifier
+        // Try with this input: isAlive = name == 1 if y;
+        // The double free should occur in the y token
+        parser->previous->in_ast = true;
+        ternary->as.ternary_op.tok_ternary.tok_colon = parser->previous;
 
-    expression(parser, lexer, &ternary->as.ternary_op.false_expression);
+        expression(parser, lexer, &ternary->as.ternary_op.false_expression);
+    }
 
     (*ast) = ternary;
 }

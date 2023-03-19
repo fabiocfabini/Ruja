@@ -111,7 +111,7 @@ Ruja_Ast ast_new_literal(Ruja_Token* literal_token);
 Ruja_Ast ast_new_identifier(Ruja_Token* identifier_token);
 Ruja_Ast ast_new_unary_op(Ruja_Token* unary_token, Ruja_Ast expression);
 Ruja_Ast ast_new_binary_op(Ruja_Token* binary_token, Ruja_Ast left_expression, Ruja_Ast right_expression);
-Ruja_Ast ast_new_ternary_op(Ruja_Token* tok_question, Ruja_Ast condition, Ruja_Ast true_expression, Ruja_Ast false_expression);
+Ruja_Ast ast_new_ternary_op(Ruja_Token* tok_question, Ruja_Token* tok_colon, Ruja_Ast condition, Ruja_Ast true_expression, Ruja_Ast false_expression);
 Ruja_Ast ast_new_expression(Ruja_Ast expression);
 Ruja_Ast ast_new_assign(Ruja_Token* assign_token, Ruja_Ast identifier, Ruja_Ast expression);
 Ruja_Ast ast_new_typed_decl(Ruja_Token* dtype_token, Ruja_Ast identifier);
