@@ -1,8 +1,8 @@
-build/*
-exe/*
 .vscode/*
-g.pdf
 *.dot
-nan.c
+g.pdf
 input.ruja
-tokens.ruja
+
+# CMake
+out/*
+bin/*
