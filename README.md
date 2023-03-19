@@ -40,7 +40,11 @@ For now the language compiles to bytecode that is later interpreted by a virtual
 Since the language core is still being built, there is no quick-start section. To build you need ```gcc```, ```make``` and ```valgrind```.
 
 ```bash
-make 
+git clone <repo-url>
+cd Ruja
+mkdir -p out/build
+cmake -S ../../src
+make
 ```
 
 ## **Running**
