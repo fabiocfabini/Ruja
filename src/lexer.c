@@ -102,7 +102,8 @@ static void skip_whitespace(Ruja_Lexer *lexer) {
  * @param key The token kind to return if the match is successful.
  * @return Ruja_Token_Kind The type of the token that was matched.
  */
-static Ruja_Token_Kind match(Ruja_Lexer* lexer, size_t start, size_t length, const char* expected, Ruja_Token_Kind key) {
+static Ruja_Token_Kind match(Ruja_Lexer* lexer, size_t tok_length, size_t start, size_t length, const char* expected, Ruja_Token_Kind key) {
+    if (tok_length != start + length) return RUJA_TOK_ID;
     for(size_t i = start; i < length; i++) {
         if(peek_offset(lexer, i) != expected[i - start]) {
             return RUJA_TOK_ID;
@@ -117,71 +118,71 @@ static Ruja_Token_Kind match(Ruja_Lexer* lexer, size_t start, size_t length, con
  * @param lexer The lexer to check the current token of.
  * @return Ruja_Token_Kind The kind of the current token.
  */
-static Ruja_Token_Kind id_v_keyword(Ruja_Lexer* lexer) {
+static Ruja_Token_Kind id_v_keyword(Ruja_Lexer* lexer, size_t length) {
     switch(peek_offset(lexer, 0)) {
-        case 'a': { return match(lexer, 1, 2, "nd", RUJA_TOK_AND); break; }
+        case 'a': { return match(lexer, length, 1, 2, "nd", RUJA_TOK_AND); break; }
         case 'b': {
             switch(peek_offset(lexer, 1)) {
-                case 'r': return match(lexer, 2, 2, "eak", RUJA_TOK_BREAK); break;
-                case 'o': return match(lexer, 2, 1, "ol", RUJA_TOK_TYPE_BOOL); break;
+                case 'r': return match(lexer, length, 2, 2, "eak", RUJA_TOK_BREAK); break;
+                case 'o': return match(lexer, length, 2, 1, "ol", RUJA_TOK_TYPE_BOOL); break;
             }
         } break;
         case 'c' : {
             switch(peek_offset(lexer, 1)) {
-                case 'o': return match(lexer, 2, 6, "ntinue", RUJA_TOK_CONTINUE); break;
-                case 'h': return match(lexer, 2, 4, "ar", RUJA_TOK_TYPE_CHAR); break;
+                case 'o': return match(lexer, length, 2, 6, "ntinue", RUJA_TOK_CONTINUE); break;
+                case 'h': return match(lexer, length, 2, 4, "ar", RUJA_TOK_TYPE_CHAR); break;
             }
         } break;
         case 'e': {
             switch(peek_offset(lexer, 1)) {
                 case 'l': {
                     switch(peek_offset(lexer, 2)) {
-                        case 's': return match(lexer, 3, 1, "e", RUJA_TOK_ELSE); break;
-                        case 'i': return match(lexer, 3, 1, "f", RUJA_TOK_ELIF); break;
+                        case 's': return match(lexer, length, 3, 1, "e", RUJA_TOK_ELSE); break;
+                        case 'i': return match(lexer, length, 3, 1, "f", RUJA_TOK_ELIF); break;
                     }
                 } break;
-                case 'n': return match(lexer, 2, 2, "um", RUJA_TOK_ENUM); break;
+                case 'n': return match(lexer, length, 2, 2, "um", RUJA_TOK_ENUM); break;
             }
         } break;
         case 'f': {
             switch(peek_offset(lexer, 1)) {
-                case 'a': return match(lexer, 2, 3, "lse", RUJA_TOK_FALSE); break;
-                case 'o': return match(lexer, 2, 1, "r", RUJA_TOK_FOR); break;
-                case '6': return match(lexer, 2, 1, "4", RUJA_TOK_TYPE_F64); break;
+                case 'a': return match(lexer, length, 2, 3, "lse", RUJA_TOK_FALSE); break;
+                case 'o': return match(lexer, length, 2, 1, "r", RUJA_TOK_FOR); break;
+                case '6': return match(lexer, length, 2, 1, "4", RUJA_TOK_TYPE_F64); break;
             }
         } break;
         case 'i': {
             switch(peek_offset(lexer, 1)) {
-                case 'f': return match(lexer, 2, 0, "", RUJA_TOK_IF); break;
-                case 'n': return match(lexer, 2, 0, "", RUJA_TOK_IN); break;
-                case '3': return match(lexer, 2, 1, "2", RUJA_TOK_TYPE_I32); break;
+                case 'f': return match(lexer, length, 2, 0, "", RUJA_TOK_IF); break;
+                case 'n': return match(lexer, length, 2, 0, "", RUJA_TOK_IN); break;
+                case '3': return match(lexer, length, 2, 1, "2", RUJA_TOK_TYPE_I32); break;
             }
         } break;
-        case 'l': { return match(lexer, 1, 2, "et", RUJA_TOK_LET); break; }
+        case 'l': { return match(lexer, length, 1, 2, "et", RUJA_TOK_LET); break; }
         case 'n': { 
             switch(peek_offset(lexer, 1)) {
-                case 'o': return match(lexer, 2, 1, "t", RUJA_TOK_NOT); break;
-                case 'i': return match(lexer, 2, 1, "l", RUJA_TOK_NIL); break;
+                case 'o': return match(lexer, length, 2, 1, "t", RUJA_TOK_NOT); break;
+                case 'i': return match(lexer, length, 2, 1, "l", RUJA_TOK_NIL); break;
             }
         } break;
-        case 'o': { return match(lexer, 1, 2, "r", RUJA_TOK_OR); break; }
-        case 'p': { return match(lexer, 1, 3, "roc", RUJA_TOK_PROC); break; }
-        case 'r': { return match(lexer, 1, 5, "eturn", RUJA_TOK_RETURN); break; }
+        case 'o': { return match(lexer, length, 1, 2, "r", RUJA_TOK_OR); break; }
+        case 'p': { return match(lexer, length, 1, 3, "roc", RUJA_TOK_PROC); break; }
+        case 'r': { return match(lexer, length, 1, 5, "eturn", RUJA_TOK_RETURN); break; }
         case 's': { 
             switch (peek_offset(lexer, 1)) {
                 case 't': {
                     switch (peek_offset(lexer, 2)) {
                         case 'r': {
                             switch (peek_offset(lexer, 3)) {
-                                case 'u': return match(lexer, 4, 1, "c", RUJA_TOK_STRUCT); break;
-                                case 'i': return match(lexer, 4, 2, "ng", RUJA_TOK_TYPE_STRING); break;
+                                case 'u': return match(lexer, length, 4, 1, "c", RUJA_TOK_STRUCT); break;
+                                case 'i': return match(lexer, length, 4, 2, "ng", RUJA_TOK_TYPE_STRING); break;
                             }
                         } break;
                     }
                 } break;
             }
         } break;
-        case 't': { return match(lexer, 1, 3, "rue", RUJA_TOK_TRUE); break; }
+        case 't': { return match(lexer, length, 1, 3, "rue", RUJA_TOK_TRUE); break; }
     }
 
     return RUJA_TOK_ID;
@@ -199,10 +200,11 @@ static Ruja_Token* tok_identifier(Ruja_Lexer *lexer) {
         advance(lexer);
     }
 
+    size_t length = (size_t) (lexer->current - lexer->start);
     Ruja_Token* result = token_new(
-        id_v_keyword(lexer),
+        id_v_keyword(lexer, length),
         lexer->start,
-        (size_t) (lexer->current - lexer->start),
+        length,
         lexer->line
     );
 
