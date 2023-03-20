@@ -82,6 +82,18 @@ void ast_free(Ruja_Ast ast) {
             token_free(ast->as.else_branch.tok_else);
             ast_free(ast->as.else_branch.body);
             break;
+        case AST_NODE_RANGED_ITER:
+            ast_free(ast->as.ranged_iter.start_expr);
+            ast_free(ast->as.ranged_iter.end_expr);
+            ast_free(ast->as.ranged_iter.step_expr);
+            break;
+        case AST_NODE_STMT_FOR:
+            token_free(ast->as.for_loop.tok_for);
+            token_free(ast->as.for_loop.tok_in);
+            ast_free(ast->as.for_loop.identifier);
+            ast_free(ast->as.for_loop.iter);
+            ast_free(ast->as.for_loop.body);
+            break;
         case AST_NODE_STMTS:
             ast_free(ast->as.stmts.statement);
             ast_free(ast->as.stmts.next);
@@ -255,6 +267,33 @@ Ruja_Ast ast_new_else_stmt(Ruja_Token* else_token, Ruja_Ast body) {
     else_token->in_ast = true;
     return ast;
 }
+
+Ruja_Ast ast_new_ranged_iter(Ruja_Ast start_expr, Ruja_Ast end_expr, Ruja_Ast step_expr) {
+    Ruja_Ast ast = ast_new();
+    if (ast == NULL) return NULL;
+
+    ast->type = AST_NODE_RANGED_ITER;
+    ast->as.ranged_iter.start_expr = start_expr;
+    ast->as.ranged_iter.end_expr = end_expr;
+    ast->as.ranged_iter.step_expr = step_expr;
+
+    return ast;
+}
+
+Ruja_Ast ast_new_for_loop(Ruja_Token* for_token, Ruja_Ast identifier, Ruja_Ast iter, Ruja_Ast body) {
+    Ruja_Ast ast = ast_new();
+    if (ast == NULL) return NULL;
+
+    ast->type = AST_NODE_STMT_FOR;
+    ast->as.for_loop.tok_for = for_token;
+    ast->as.for_loop.identifier = identifier;
+    ast->as.for_loop.iter = iter;
+    ast->as.for_loop.body = body;
+
+    for_token->in_ast = true;
+    return ast;
+}
+
 
 Ruja_Ast ast_new_stmt(Ruja_Ast statement, Ruja_Ast next) {
     Ruja_Ast ast = ast_new();
@@ -448,6 +487,7 @@ static void ast_dot_internal(Ruja_Ast ast, FILE* file, size_t* id) {
 #define DARK_RED "#CC0000"
 
 // Light colors
+#define LOOP_COLOR "#91F6F6"
 #define BRANCH_COLOR "#F391F6"
 #define STATEMENT_COLOR "#F6CD91"
 #define EXPRESSION_COLOR "#CCE6FF"
@@ -561,6 +601,26 @@ static void ast_dot_internal(Ruja_Ast ast, FILE* file, size_t* id) {
             dot_node(file, root_id, "ElseBranch", BRANCH_COLOR, "filled");
             dot_arrow(file, root_id, increment(id), "body");
             ast_dot_internal(ast->as.else_branch.body, file, id);
+            break;
+        case AST_NODE_RANGED_ITER:
+            dot_node(file, root_id, "RangedIteration", STATEMENT_COLOR, "filled");
+            dot_arrow(file, root_id, increment(id), "start");
+            ast_dot_internal(ast->as.ranged_iter.start_expr, file, id);
+            dot_arrow(file, root_id, increment(id), "end");
+            ast_dot_internal(ast->as.ranged_iter.end_expr, file, id);
+            if (ast->as.ranged_iter.step_expr != NULL) {
+                dot_arrow(file, root_id, increment(id), "step");
+                ast_dot_internal(ast->as.ranged_iter.step_expr, file, id);
+            }
+            break;
+        case AST_NODE_STMT_FOR:
+            dot_node(file, root_id, "ForLoop", LOOP_COLOR, "filled");
+            dot_arrow(file, root_id, increment(id), "identifier");
+            ast_dot_internal(ast->as.for_loop.identifier, file, id);
+            dot_arrow(file, root_id, increment(id), "iterable");
+            ast_dot_internal(ast->as.for_loop.iter, file, id);
+            dot_arrow(file, root_id, increment(id), "body");
+            ast_dot_internal(ast->as.for_loop.body, file, id);
             break;
         case AST_NODE_STMTS:
             dot_node(file, root_id, "Statements", STATEMENT_COLOR, "filled");

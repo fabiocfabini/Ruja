@@ -654,6 +654,53 @@ static void if_branch(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
     *ast = if_ast;
 }
 
+static void ranged_iter(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
+    Ruja_Ast iter_ast = ast_new_ranged_iter(ast_new_expression(NULL), ast_new_expression(NULL), NULL); // Last expr is NULL because it is optional
+
+    expression(parser, lexer, &iter_ast->as.ranged_iter.start_expr->as.expr.expression);
+    expect(parser, lexer, RUJA_TOK_COLON, "Expected ':' after start expression of ranged iter");
+
+    if (!parser->had_error) {
+        expression(parser, lexer, &iter_ast->as.ranged_iter.end_expr->as.expr.expression);
+
+        if (parser->current->kind == RUJA_TOK_COLON) {
+            // If there is a third expression, parse it
+            advance(parser, lexer);
+            iter_ast->as.ranged_iter.step_expr = ast_new_expression(NULL);
+            expression(parser, lexer, &iter_ast->as.ranged_iter.step_expr->as.expr.expression);
+        }
+    }
+
+    *ast = iter_ast;
+}
+
+static void for_loop(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
+    Ruja_Ast for_ast = ast_new_for_loop(parser->previous, NULL, NULL, ast_new_stmt(NULL, NULL));
+
+    //NOTE: Only accept single identifiers for now
+    expect(parser, lexer, RUJA_TOK_ID, "Expected identifier after for keyword");
+
+    if (!parser->had_error) {
+        for_ast->as.for_loop.identifier = ast_new_identifier(parser->previous);
+
+        expect(parser, lexer, RUJA_TOK_IN, "Expected 'in' after identifier");
+
+        if (!parser->had_error) {
+            for_ast->as.for_loop.tok_in = parser->previous; parser->previous->in_ast = true;
+            
+            ranged_iter(parser, lexer, &for_ast->as.for_loop.iter);
+            expect(parser, lexer, RUJA_TOK_LBRACE, "Expected '{' after for iter");
+
+            if (!parser->had_error) {
+                statements(parser, lexer, &for_ast->as.for_loop.body);
+                expect(parser, lexer, RUJA_TOK_RBRACE, "Expected '}' after for body");
+            }
+        }
+    }
+
+    *ast = for_ast;
+}
+
 static void statement(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
     advance(parser, lexer);
 
@@ -670,6 +717,9 @@ static void statement(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
         } break;
         case RUJA_TOK_IF: {
             if_branch(parser, lexer, ast);
+        } break;
+        case RUJA_TOK_FOR: {
+            for_loop(parser, lexer, ast);
         } break;
         default: {
             parser_error(parser, lexer, parser->previous, "Expected a statement");

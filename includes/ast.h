@@ -48,6 +48,9 @@ typedef enum {
     AST_NODE_STMT_IF,
     AST_NODE_STMT_ELIF,
     AST_NODE_STMT_ELSE,
+
+    AST_NODE_RANGED_ITER,
+    AST_NODE_STMT_FOR,
     AST_NODE_STMTS,
 } ast_node_type;
 
@@ -118,6 +121,18 @@ typedef struct Ruja_Ast_Node {
             struct Ruja_Ast_Node* body;
         } else_branch;
         struct {
+            struct Ruja_Ast_Node *start_expr;
+            struct Ruja_Ast_Node *end_expr;
+            struct Ruja_Ast_Node *step_expr;
+        } ranged_iter;
+        struct {
+            Ruja_Token* tok_for;
+            Ruja_Token* tok_in;
+            struct Ruja_Ast_Node *identifier; // For now, only one identifier is allowed
+            struct Ruja_Ast_Node *iter;
+            struct Ruja_Ast_Node *body;
+        } for_loop;
+        struct {
             struct Ruja_Ast_Node *statement;
             struct Ruja_Ast_Node *next;
         } stmts;
@@ -133,13 +148,19 @@ Ruja_Ast ast_new_unary_op(Ruja_Token* unary_token, Ruja_Ast expression);
 Ruja_Ast ast_new_binary_op(Ruja_Token* binary_token, Ruja_Ast left_expression, Ruja_Ast right_expression);
 Ruja_Ast ast_new_ternary_op(Ruja_Token* tok_question, Ruja_Token* tok_colon, Ruja_Ast condition, Ruja_Ast true_expression, Ruja_Ast false_expression);
 Ruja_Ast ast_new_expression(Ruja_Ast expression);
+
 Ruja_Ast ast_new_assign(Ruja_Token* assign_token, Ruja_Ast identifier, Ruja_Ast expression);
 Ruja_Ast ast_new_typed_decl(Ruja_Token* dtype_token, Ruja_Ast identifier);
 Ruja_Ast ast_new_typed_decl_assign(Ruja_Token* dtype_token, Ruja_Token* assign_token, Ruja_Ast identifier, Ruja_Ast expression);
 Ruja_Ast ast_new_inferred_decl_assign(Ruja_Token* assign_token, Ruja_Ast identifier, Ruja_Ast expression);
+
 Ruja_Ast ast_new_if_stmt(Ruja_Token* if_token, Ruja_Ast condition, Ruja_Ast body, Ruja_Ast else_stmt);
 Ruja_Ast ast_new_elif_stmt(Ruja_Token* elif_token, Ruja_Ast condition, Ruja_Ast body, Ruja_Ast else_stmt);
 Ruja_Ast ast_new_else_stmt(Ruja_Token* else_token, Ruja_Ast body);
+
+Ruja_Ast ast_new_ranged_iter(Ruja_Ast start_expr, Ruja_Ast end_expr, Ruja_Ast step_expr);
+Ruja_Ast ast_new_for_loop(Ruja_Token* for_token, Ruja_Ast identifier, Ruja_Ast iter, Ruja_Ast body);
+
 Ruja_Ast ast_new_stmt(Ruja_Ast statement, Ruja_Ast next);
 
 void ast_dot(Ruja_Ast ast, FILE *file);
