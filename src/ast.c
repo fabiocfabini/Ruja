@@ -66,6 +66,22 @@ void ast_free(Ruja_Ast ast) {
             ast_free(ast->as.inferred_decl_assign.identifier);
             ast_free(ast->as.inferred_decl_assign.expression);
             break;
+        case AST_NODE_STMT_IF:
+            token_free(ast->as.if_branch.tok_if);
+            ast_free(ast->as.if_branch.condition);
+            ast_free(ast->as.if_branch.body);
+            ast_free(ast->as.if_branch.next_branch);
+            break;
+        case AST_NODE_STMT_ELIF:
+            token_free(ast->as.elif_branch.tok_elif);
+            ast_free(ast->as.elif_branch.condition);
+            ast_free(ast->as.elif_branch.body);
+            ast_free(ast->as.elif_branch.next_branch);
+            break;
+        case AST_NODE_STMT_ELSE:
+            token_free(ast->as.else_branch.tok_else);
+            ast_free(ast->as.else_branch.body);
+            break;
         case AST_NODE_STMTS:
             ast_free(ast->as.stmts.statement);
             ast_free(ast->as.stmts.next);
@@ -197,6 +213,46 @@ Ruja_Ast ast_new_inferred_decl_assign(Ruja_Token* assign_token, Ruja_Ast identif
     ast->as.inferred_decl_assign.expression = expression;
 
     assign_token->in_ast = true;
+    return ast;
+}
+
+Ruja_Ast ast_new_if_stmt(Ruja_Token* if_token, Ruja_Ast condition, Ruja_Ast body, Ruja_Ast next_branch) {
+    Ruja_Ast ast = ast_new();
+    if (ast == NULL) return NULL;
+
+    ast->type = AST_NODE_STMT_IF;
+    ast->as.if_branch.tok_if = if_token;
+    ast->as.if_branch.condition = condition;
+    ast->as.if_branch.body = body;
+    ast->as.if_branch.next_branch = next_branch;
+
+    if_token->in_ast = true;
+    return ast;
+}
+
+Ruja_Ast ast_new_elif_stmt(Ruja_Token* elif_token, Ruja_Ast condition, Ruja_Ast body, Ruja_Ast else_stmt) {
+    Ruja_Ast ast = ast_new();
+    if (ast == NULL) return NULL;
+
+    ast->type = AST_NODE_STMT_ELIF;
+    ast->as.elif_branch.tok_elif = elif_token;
+    ast->as.elif_branch.condition = condition;
+    ast->as.elif_branch.body = body;
+    ast->as.elif_branch.next_branch = else_stmt;
+
+    elif_token->in_ast = true;
+    return ast;
+}
+
+Ruja_Ast ast_new_else_stmt(Ruja_Token* else_token, Ruja_Ast body) {
+    Ruja_Ast ast = ast_new();
+    if (ast == NULL) return NULL;
+
+    ast->type = AST_NODE_STMT_ELSE;
+    ast->as.else_branch.tok_else = else_token;
+    ast->as.else_branch.body = body;
+
+    else_token->in_ast = true;
     return ast;
 }
 
@@ -392,6 +448,7 @@ static void ast_dot_internal(Ruja_Ast ast, FILE* file, size_t* id) {
 #define DARK_RED "#CC0000"
 
 // Light colors
+#define BRANCH_COLOR "#F391F6"
 #define STATEMENT_COLOR "#F6CD91"
 #define EXPRESSION_COLOR "#CCE6FF"
 #define LITERAL_COLOR "#CCFFCC"
@@ -478,6 +535,33 @@ static void ast_dot_internal(Ruja_Ast ast, FILE* file, size_t* id) {
             dot_arrow(file, root_id, increment(id), "expression");
             ast_dot_internal(ast->as.inferred_decl_assign.expression, file, id);
             break;
+        case AST_NODE_STMT_IF:
+            dot_node(file, root_id, "IfBranch", BRANCH_COLOR, "filled");
+            dot_arrow(file, root_id, increment(id), "condition");
+            ast_dot_internal(ast->as.if_branch.condition, file, id);
+            dot_arrow(file, root_id, increment(id), "body");
+            ast_dot_internal(ast->as.if_branch.body, file, id);
+            if (ast->as.if_branch.next_branch != NULL) {
+                dot_arrow(file, root_id, increment(id), "next");
+                ast_dot_internal(ast->as.if_branch.next_branch, file, id);
+            }
+            break;
+        case AST_NODE_STMT_ELIF:
+            dot_node(file, root_id, "ElifBranch", BRANCH_COLOR, "filled");
+            dot_arrow(file, root_id, increment(id), "condition");
+            ast_dot_internal(ast->as.elif_branch.condition, file, id);
+            dot_arrow(file, root_id, increment(id), "body");
+            ast_dot_internal(ast->as.elif_branch.body, file, id);
+            if (ast->as.elif_branch.next_branch != NULL) {
+                dot_arrow(file, root_id, increment(id), "next");
+                ast_dot_internal(ast->as.elif_branch.next_branch, file, id);
+            }
+            break;
+        case AST_NODE_STMT_ELSE:
+            dot_node(file, root_id, "ElseBranch", BRANCH_COLOR, "filled");
+            dot_arrow(file, root_id, increment(id), "body");
+            ast_dot_internal(ast->as.else_branch.body, file, id);
+            break;
         case AST_NODE_STMTS:
             dot_node(file, root_id, "Statements", STATEMENT_COLOR, "filled");
             dot_arrow(file, root_id, increment(id), "statement");
@@ -495,6 +579,7 @@ static void ast_dot_internal(Ruja_Ast ast, FILE* file, size_t* id) {
 #undef DARK_RED
 
 // Light colors
+#undef BRANCH_COLOR
 #undef STATEMENT_COLOR
 #undef EXPRESSION_COLOR
 #undef LITERAL_COLOR

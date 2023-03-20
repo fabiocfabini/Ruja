@@ -44,6 +44,10 @@ typedef enum {
     AST_NODE_STMT_TYPED_DECL,
     AST_NODE_STMT_TYPED_DECL_ASSIGN,
     AST_NODE_STMT_INFERRED_DECL_ASSIGN,
+
+    AST_NODE_STMT_IF,
+    AST_NODE_STMT_ELIF,
+    AST_NODE_STMT_ELSE,
     AST_NODE_STMTS,
 } ast_node_type;
 
@@ -98,6 +102,22 @@ typedef struct Ruja_Ast_Node {
             struct Ruja_Ast_Node *expression;
         } inferred_decl_assign;
         struct {
+            Ruja_Token* tok_if;
+            struct Ruja_Ast_Node *condition;
+            struct Ruja_Ast_Node* body;
+            struct Ruja_Ast_Node* next_branch;
+        } if_branch;
+        struct {
+            Ruja_Token* tok_elif;
+            struct Ruja_Ast_Node *condition;
+            struct Ruja_Ast_Node* body;
+            struct Ruja_Ast_Node* next_branch;
+        } elif_branch;
+        struct {
+            Ruja_Token* tok_else;
+            struct Ruja_Ast_Node* body;
+        } else_branch;
+        struct {
             struct Ruja_Ast_Node *statement;
             struct Ruja_Ast_Node *next;
         } stmts;
@@ -117,6 +137,9 @@ Ruja_Ast ast_new_assign(Ruja_Token* assign_token, Ruja_Ast identifier, Ruja_Ast 
 Ruja_Ast ast_new_typed_decl(Ruja_Token* dtype_token, Ruja_Ast identifier);
 Ruja_Ast ast_new_typed_decl_assign(Ruja_Token* dtype_token, Ruja_Token* assign_token, Ruja_Ast identifier, Ruja_Ast expression);
 Ruja_Ast ast_new_inferred_decl_assign(Ruja_Token* assign_token, Ruja_Ast identifier, Ruja_Ast expression);
+Ruja_Ast ast_new_if_stmt(Ruja_Token* if_token, Ruja_Ast condition, Ruja_Ast body, Ruja_Ast else_stmt);
+Ruja_Ast ast_new_elif_stmt(Ruja_Token* elif_token, Ruja_Ast condition, Ruja_Ast body, Ruja_Ast else_stmt);
+Ruja_Ast ast_new_else_stmt(Ruja_Token* else_token, Ruja_Ast body);
 Ruja_Ast ast_new_stmt(Ruja_Ast statement, Ruja_Ast next);
 
 void ast_dot(Ruja_Ast ast, FILE *file);

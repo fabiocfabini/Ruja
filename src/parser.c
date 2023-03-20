@@ -108,6 +108,13 @@ typedef struct {
     Precedence precedence;
 } Parse_Rule;
 
+//TODO: Organize these functions better
+static void statements(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
+static void statement(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
+static void inferred_declaration(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
+static void declaration(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
+static void assignment(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
+static void if_branch(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
 static void expression(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
 static void ternary(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
 static void binary(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
@@ -554,6 +561,99 @@ static void assignment(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
 #pragma GCC diagnostic pop
 }
 
+static void else_branch(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
+    Ruja_Ast else_ast = ast_new_else_stmt(parser->previous, ast_new_stmt(NULL, NULL));
+
+    expect(parser, lexer, RUJA_TOK_LBRACE, "Expected '{' after else keyword");
+
+    // If there was an error the rest should be skipped.
+    // Return the else_ast as it is, it will be freed later
+    if (!parser->had_error) {
+        // Parse the body of the else statement
+
+        statements(parser, lexer, &else_ast->as.else_branch.body);
+        expect(parser, lexer, RUJA_TOK_RBRACE, "Expected '}' after else body");
+    }
+
+    *ast = else_ast;
+}
+
+static void elif_branch(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
+    Ruja_Ast elif_ast = ast_new_elif_stmt(parser->previous, ast_new_expression(NULL), ast_new_stmt(NULL, NULL), NULL);
+
+    expression(parser, lexer, &elif_ast->as.elif_branch.condition->as.expr.expression);
+    expect(parser, lexer, RUJA_TOK_LBRACE, "Expected '{' after elif condition");
+
+    // If there was an error the rest should be skipped.
+    // Return the elif_ast as it is, it will be freed later
+    if (!parser->had_error) {
+        // Parse the body of the elif statement
+
+        statements(parser, lexer, &elif_ast->as.elif_branch.body);
+        expect(parser, lexer, RUJA_TOK_RBRACE, "Expected '}' after elif body");
+
+        // Same thought as before
+        if (!parser->had_error) {
+        #pragma GCC diagnostic push
+        #pragma GCC diagnostic ignored "-Wswitch-enum"
+            switch (parser->current->kind) {
+                case RUJA_TOK_ELSE: {
+                    advance(parser, lexer);
+                    else_branch(parser, lexer, &elif_ast->as.if_branch.next_branch);
+                } break;
+                case RUJA_TOK_ELIF: {
+                    advance(parser, lexer);
+                    elif_branch(parser, lexer, &elif_ast->as.if_branch.next_branch);
+                } break;
+                default: {
+                    // Do nothing. This is the end of the elif statement
+                } break;
+            }
+        #pragma GCC diagnostic pop
+        }
+    }
+
+    *ast = elif_ast;
+}
+
+static void if_branch(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
+    Ruja_Ast if_ast = ast_new_if_stmt(parser->previous, ast_new_expression(NULL), ast_new_stmt(NULL, NULL), NULL);
+
+    expression(parser, lexer, &if_ast->as.if_branch.condition->as.expr.expression);
+    expect(parser, lexer, RUJA_TOK_LBRACE, "Expected '{' after if condition");
+
+    // If there was an error the rest should be skipped.
+    // Return the if_ast as it is, it will be freed later
+    if (!parser->had_error) {
+        // Parse the body of the if statement
+
+        statements(parser, lexer, &if_ast->as.if_branch.body);
+        expect(parser, lexer, RUJA_TOK_RBRACE, "Expected '}' after if body");
+
+        // Same thought as before
+        if (!parser->had_error) {
+        #pragma GCC diagnostic push
+        #pragma GCC diagnostic ignored "-Wswitch-enum"
+            switch (parser->current->kind) {
+                case RUJA_TOK_ELSE: {
+                    advance(parser, lexer);
+                    else_branch(parser, lexer, &if_ast->as.if_branch.next_branch);
+                } break;
+                case RUJA_TOK_ELIF: {
+                    advance(parser, lexer);
+                    elif_branch(parser, lexer, &if_ast->as.if_branch.next_branch);
+                } break;
+                default: {
+                    // Do nothing. This is the end of the if statement
+                } break;
+            }
+        #pragma GCC diagnostic pop
+        }
+    }
+
+    *ast = if_ast;
+}
+
 static void statement(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
     advance(parser, lexer);
 
@@ -568,6 +668,9 @@ static void statement(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
             assignment(parser, lexer, ast);
             expect(parser, lexer, RUJA_TOK_SEMICOLON, "Expected ';' after assignment");
         } break;
+        case RUJA_TOK_IF: {
+            if_branch(parser, lexer, ast);
+        } break;
         default: {
             parser_error(parser, lexer, parser->previous, "Expected a statement");
         } break;
@@ -577,7 +680,7 @@ static void statement(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
 
 static void statements(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
     Ruja_Ast *current = ast;
-    while (parser->current->kind != RUJA_TOK_EOF) {
+    while (parser->current->kind != RUJA_TOK_EOF && parser->current->kind != RUJA_TOK_RBRACE) {
         statement(parser, lexer, &(*current)->as.stmts.statement);
         (*current)->as.stmts.next = ast_new_stmt(NULL, NULL);
         current = &(*current)->as.stmts.next;
