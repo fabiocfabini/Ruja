@@ -94,6 +94,11 @@ void ast_free(Ruja_Ast ast) {
             ast_free(ast->as.for_loop.iter);
             ast_free(ast->as.for_loop.body);
             break;
+        case AST_NODE_STMT_WHILE:
+            token_free(ast->as.while_loop.tok_while);
+            ast_free(ast->as.while_loop.condition);
+            ast_free(ast->as.while_loop.body);
+            break;
         case AST_NODE_STMTS:
             ast_free(ast->as.stmts.statement);
             ast_free(ast->as.stmts.next);
@@ -294,6 +299,18 @@ Ruja_Ast ast_new_for_loop(Ruja_Token* for_token, Ruja_Ast identifier, Ruja_Ast i
     return ast;
 }
 
+Ruja_Ast ast_new_while_loop(Ruja_Token* while_token, Ruja_Ast condition, Ruja_Ast body) {
+    Ruja_Ast ast = ast_new();
+    if (ast == NULL) return NULL;
+
+    ast->type = AST_NODE_STMT_WHILE;
+    ast->as.while_loop.tok_while = while_token;
+    ast->as.while_loop.condition = condition;
+    ast->as.while_loop.body = body;
+
+    while_token->in_ast = true;
+    return ast;
+}
 
 Ruja_Ast ast_new_stmt(Ruja_Ast statement, Ruja_Ast next) {
     Ruja_Ast ast = ast_new();
@@ -487,8 +504,8 @@ static void ast_dot_internal(Ruja_Ast ast, FILE* file, size_t* id) {
 #define DARK_RED "#CC0000"
 
 // Light colors
-#define LOOP_COLOR "#91F6F6"
-#define BRANCH_COLOR "#F391F6"
+#define LOOP_COLOR "#F391F6"
+#define BRANCH_COLOR "#91F6F6"
 #define STATEMENT_COLOR "#F6CD91"
 #define EXPRESSION_COLOR "#CCE6FF"
 #define LITERAL_COLOR "#CCFFCC"
@@ -622,6 +639,13 @@ static void ast_dot_internal(Ruja_Ast ast, FILE* file, size_t* id) {
             dot_arrow(file, root_id, increment(id), "body");
             ast_dot_internal(ast->as.for_loop.body, file, id);
             break;
+        case AST_NODE_STMT_WHILE:
+            dot_node(file, root_id, "WhileLoop", LOOP_COLOR, "filled");
+            dot_arrow(file, root_id, increment(id), "condition");
+            ast_dot_internal(ast->as.while_loop.condition, file, id);
+            dot_arrow(file, root_id, increment(id), "body");
+            ast_dot_internal(ast->as.while_loop.body, file, id);
+            break;
         case AST_NODE_STMTS:
             dot_node(file, root_id, "Statements", STATEMENT_COLOR, "filled");
             dot_arrow(file, root_id, increment(id), "statement");
@@ -639,6 +663,7 @@ static void ast_dot_internal(Ruja_Ast ast, FILE* file, size_t* id) {
 #undef DARK_RED
 
 // Light colors
+#undef LOOP_COLOR
 #undef BRANCH_COLOR
 #undef STATEMENT_COLOR
 #undef EXPRESSION_COLOR

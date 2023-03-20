@@ -701,6 +701,20 @@ static void for_loop(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
     *ast = for_ast;
 }
 
+static void while_loop(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
+    Ruja_Ast while_ast = ast_new_while_loop(parser->previous, ast_new_expression(NULL), ast_new_stmt(NULL, NULL));
+
+    expression(parser, lexer, &while_ast->as.while_loop.condition->as.expr.expression);
+    expect(parser, lexer, RUJA_TOK_LBRACE, "Expected '{' after while condition");
+
+    if (!parser->had_error) {
+        statements(parser, lexer, &while_ast->as.while_loop.body);
+        expect(parser, lexer, RUJA_TOK_RBRACE, "Expected '}' after while body");
+    }
+
+    *ast = while_ast;
+}
+
 static void statement(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
     advance(parser, lexer);
 
@@ -720,6 +734,9 @@ static void statement(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
         } break;
         case RUJA_TOK_FOR: {
             for_loop(parser, lexer, ast);
+        } break;
+        case RUJA_TOK_WHILE: {
+            while_loop(parser, lexer, ast);
         } break;
         default: {
             parser_error(parser, lexer, parser->previous, "Expected a statement");

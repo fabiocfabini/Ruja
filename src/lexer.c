@@ -183,6 +183,7 @@ static Ruja_Token_Kind id_v_keyword(Ruja_Lexer* lexer, size_t length) {
             }
         } break;
         case 't': { return match(lexer, length, 1, 3, "rue", RUJA_TOK_TRUE); break; }
+        case 'w': { return match(lexer, length, 1, 4, "hile", RUJA_TOK_WHILE); break; }
     }
 
     return RUJA_TOK_ID;
@@ -308,6 +309,7 @@ static char* token_kind_to_string(Ruja_Token_Kind kind) {
         case RUJA_TOK_ELIF       : return "ELIF";
         case RUJA_TOK_FOR        : return "FOR";
         case RUJA_TOK_IN         : return "IN";
+        case RUJA_TOK_WHILE      : return "WHILE";
         case RUJA_TOK_PROC       : return "PROC";
         case RUJA_TOK_RETURN     : return "RETURN";
         case RUJA_TOK_STRUCT     : return "STRUCT";
