@@ -93,7 +93,7 @@ typedef struct Ruja_Ast_Node {
         struct {
             Ruja_Token* tok_dtype;
             struct Ruja_Ast_Node *identifier;
-        } typed_decl;
+        } typed_decl; //TODO: Abstract this into a 
         struct {
             Ruja_Token* tok_dtype;
             Ruja_Token* tok_assign;
