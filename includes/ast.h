@@ -52,6 +52,9 @@ typedef enum {
     AST_NODE_RANGED_ITER,
     AST_NODE_STMT_FOR,
     AST_NODE_STMT_WHILE,
+
+    AST_NODE_STMT_STRUCT_MEMBER,
+    AST_NODE_STMT_STRUCT_DEF,
     AST_NODE_STMTS,
 } ast_node_type;
 
@@ -93,7 +96,7 @@ typedef struct Ruja_Ast_Node {
         struct {
             Ruja_Token* tok_dtype;
             struct Ruja_Ast_Node *identifier;
-        } typed_decl; //TODO: Abstract this into a 
+        } typed_decl; //TODO: Abstract this into another node type. Naybe?
         struct {
             Ruja_Token* tok_dtype;
             Ruja_Token* tok_assign;
@@ -139,6 +142,16 @@ typedef struct Ruja_Ast_Node {
             struct Ruja_Ast_Node *body;
         } while_loop;
         struct {
+            Ruja_Token* tok_dtype;
+            struct Ruja_Ast_Node *identifier;
+            struct Ruja_Ast_Node *next_member;
+        } struct_member;
+        struct {
+            Ruja_Token* tok_struct;
+            struct Ruja_Ast_Node *identifier;
+            struct Ruja_Ast_Node *members;
+        } struct_def;
+        struct {
             struct Ruja_Ast_Node *statement;
             struct Ruja_Ast_Node *next;
         } stmts;
@@ -167,6 +180,9 @@ Ruja_Ast ast_new_else_stmt(Ruja_Token* else_token, Ruja_Ast body);
 Ruja_Ast ast_new_ranged_iter(Ruja_Ast start_expr, Ruja_Ast end_expr, Ruja_Ast step_expr);
 Ruja_Ast ast_new_for_loop(Ruja_Token* for_token, Ruja_Ast identifier, Ruja_Ast iter, Ruja_Ast body);
 Ruja_Ast ast_new_while_loop(Ruja_Token* while_token, Ruja_Ast condition, Ruja_Ast body);
+
+Ruja_Ast ast_new_struct_members(Ruja_Ast identifier_token, Ruja_Ast next_member);
+Ruja_Ast ast_new_struct_def(Ruja_Token* struct_token, Ruja_Ast identifier_token, Ruja_Ast members);
 
 Ruja_Ast ast_new_stmt(Ruja_Ast statement, Ruja_Ast next);
 

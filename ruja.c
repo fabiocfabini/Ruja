@@ -104,7 +104,7 @@ int main() {
 
 #if LEXER_TEST
 int main(void) {
-    Ruja_Lexer* lexer = lexer_new("tokens.ruja");
+    Ruja_Lexer* lexer = lexer_new("input.ruja");
     if (lexer != NULL) {
         Ruja_Token* token = NULL;
 

@@ -99,6 +99,16 @@ void ast_free(Ruja_Ast ast) {
             ast_free(ast->as.while_loop.condition);
             ast_free(ast->as.while_loop.body);
             break;
+        case AST_NODE_STMT_STRUCT_MEMBER:
+            token_free(ast->as.struct_member.tok_dtype);
+            ast_free(ast->as.struct_member.identifier);
+            ast_free(ast->as.struct_member.next_member);
+            break;
+        case AST_NODE_STMT_STRUCT_DEF:
+            token_free(ast->as.struct_def.tok_struct);
+            ast_free(ast->as.struct_def.identifier);
+            ast_free(ast->as.struct_def.members);
+            break;
         case AST_NODE_STMTS:
             ast_free(ast->as.stmts.statement);
             ast_free(ast->as.stmts.next);
@@ -291,6 +301,7 @@ Ruja_Ast ast_new_for_loop(Ruja_Token* for_token, Ruja_Ast identifier, Ruja_Ast i
 
     ast->type = AST_NODE_STMT_FOR;
     ast->as.for_loop.tok_for = for_token;
+    ast->as.for_loop.tok_in = NULL;
     ast->as.for_loop.identifier = identifier;
     ast->as.for_loop.iter = iter;
     ast->as.for_loop.body = body;
@@ -311,6 +322,33 @@ Ruja_Ast ast_new_while_loop(Ruja_Token* while_token, Ruja_Ast condition, Ruja_As
     while_token->in_ast = true;
     return ast;
 }
+
+Ruja_Ast ast_new_struct_members(Ruja_Ast identifier_token, Ruja_Ast next_member) {
+    Ruja_Ast ast = ast_new();
+    if (ast == NULL) return NULL;
+
+    ast->type = AST_NODE_STMT_STRUCT_MEMBER;
+    ast->as.struct_member.tok_dtype = NULL;
+    ast->as.struct_member.identifier = identifier_token;
+    ast->as.struct_member.next_member = next_member;
+
+    return ast;
+}
+
+Ruja_Ast ast_new_struct_def(Ruja_Token* struct_token, Ruja_Ast identifier_token, Ruja_Ast members) {
+    Ruja_Ast ast = ast_new();
+    if (ast == NULL) return NULL;
+
+    ast->type = AST_NODE_STMT_STRUCT_DEF;
+    ast->as.struct_def.tok_struct = struct_token;
+    ast->as.struct_def.identifier = identifier_token;
+    ast->as.struct_def.members = members;
+
+    struct_token->in_ast = true;
+    return ast;
+}
+
+
 
 Ruja_Ast ast_new_stmt(Ruja_Ast statement, Ruja_Ast next) {
     Ruja_Ast ast = ast_new();
@@ -645,6 +683,24 @@ static void ast_dot_internal(Ruja_Ast ast, FILE* file, size_t* id) {
             ast_dot_internal(ast->as.while_loop.condition, file, id);
             dot_arrow(file, root_id, increment(id), "body");
             ast_dot_internal(ast->as.while_loop.body, file, id);
+            break;
+        case AST_NODE_STMT_STRUCT_MEMBER:
+            dot_node(file, root_id, "StructMember", STATEMENT_COLOR, "filled");
+            dot_arrow(file, root_id, increment(id), "type");
+            dot_node(file, *id, type_to_string(ast->as.struct_member.tok_dtype->kind), ARITHMETIC_COLOR, "filled");
+            dot_arrow(file, root_id, increment(id), "identifier");
+            ast_dot_internal(ast->as.struct_member.identifier, file, id);
+            if (ast->as.struct_member.next_member != NULL) {
+                dot_arrow(file, root_id, increment(id), "next");
+                ast_dot_internal(ast->as.struct_member.next_member, file, id);
+            }
+            break;
+        case AST_NODE_STMT_STRUCT_DEF:
+            dot_node(file, root_id, "StructDefinition", STATEMENT_COLOR, "filled");
+            dot_arrow(file, root_id, increment(id), "identifier");
+            ast_dot_internal(ast->as.struct_def.identifier, file, id);
+            dot_arrow(file, root_id, increment(id), "members");
+            ast_dot_internal(ast->as.struct_def.members, file, id);
             break;
         case AST_NODE_STMTS:
             dot_node(file, root_id, "Statements", STATEMENT_COLOR, "filled");

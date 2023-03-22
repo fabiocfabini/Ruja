@@ -720,6 +720,68 @@ static void while_loop(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
     *ast = while_ast;
 }
 
+static void struct_member(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
+    (*ast)->as.struct_member.identifier = ast_new_identifier(parser->previous);
+
+    expect(parser, lexer, RUJA_TOK_COLON, "Expected ':' after struct member identifier");
+    if (!parser->had_error) {
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wswitch-enum"
+        switch (parser->current->kind) {
+            case RUJA_TOK_TYPE_BOOL:
+            case RUJA_TOK_TYPE_CHAR:
+            case RUJA_TOK_TYPE_I32:
+            case RUJA_TOK_TYPE_F64:
+            case RUJA_TOK_TYPE_STRING: {
+                advance(parser, lexer);
+                (*ast)->as.struct_member.tok_dtype = parser->previous; parser->previous->in_ast = true;
+                expect(parser, lexer, RUJA_TOK_COMMA, "Expected ',' after struct member");
+            } break;
+            default: {
+                parser_error(parser, lexer, parser->current, "Expected data type after ':'");
+            } break;
+        }
+    #pragma GCC diagnostic pop
+    }
+}
+
+static void struct_members(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
+    Ruja_Ast *current = ast;
+    while (parser->current->kind == RUJA_TOK_ID) {
+        advance(parser, lexer);
+        struct_member(parser, lexer, current);
+        (*current)->as.struct_member.next_member = ast_new_struct_members(NULL, NULL);
+        current = &(*current)->as.struct_member.next_member;
+    }
+
+    // If the last statement was a statement with no next, then we need to free it
+    if ((*current)->as.struct_member.next_member == NULL) {
+        ast_free(*current);
+        *current = NULL;
+    }
+}
+
+static void struct_definition(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
+    Ruja_Ast struct_ast = ast_new_struct_def(parser->previous, NULL, NULL);
+
+    expect(parser, lexer, RUJA_TOK_ID, "Expected identifier after struct keyword");
+    if (!parser->had_error) {
+        struct_ast->as.struct_def.identifier = ast_new_identifier(parser->previous);
+
+        expect(parser, lexer, RUJA_TOK_LBRACE, "Expected '{' after struct identifier");
+        if (!parser->had_error) {
+            struct_ast->as.struct_def.members = ast_new_struct_members(NULL, NULL);
+            struct_members(parser, lexer, &struct_ast->as.struct_def.members);
+            if (struct_ast->as.struct_def.members == NULL) {
+                parser_error(parser, lexer, parser->current, "Empty struct definition. Expected at least one member");
+            }
+            expect(parser, lexer, RUJA_TOK_RBRACE, "Expected '}' after struct members");
+        }
+    }
+
+    *ast = struct_ast;
+}
+
 static void statement(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
     advance(parser, lexer);
 
@@ -742,6 +804,10 @@ static void statement(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
         } break;
         case RUJA_TOK_WHILE: {
             while_loop(parser, lexer, ast);
+        } break;
+        case RUJA_TOK_STRUCT: {
+            struct_definition(parser, lexer, ast);
+            expect(parser, lexer, RUJA_TOK_SEMICOLON, "Expected ';' after struct declaration");
         } break;
         default: {
             parser_error(parser, lexer, parser->previous, "Expected a statement");

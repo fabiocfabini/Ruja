@@ -124,13 +124,13 @@ static Ruja_Token_Kind id_v_keyword(Ruja_Lexer* lexer, size_t length) {
         case 'b': {
             switch(peek_offset(lexer, 1)) {
                 case 'r': return match(lexer, length, 2, 2, "eak", RUJA_TOK_BREAK); break;
-                case 'o': return match(lexer, length, 2, 1, "ol", RUJA_TOK_TYPE_BOOL); break;
+                case 'o': return match(lexer, length, 2, 2, "ol", RUJA_TOK_TYPE_BOOL); break;
             }
         } break;
         case 'c' : {
             switch(peek_offset(lexer, 1)) {
                 case 'o': return match(lexer, length, 2, 6, "ntinue", RUJA_TOK_CONTINUE); break;
-                case 'h': return match(lexer, length, 2, 4, "ar", RUJA_TOK_TYPE_CHAR); break;
+                case 'h': return match(lexer, length, 2, 2, "ar", RUJA_TOK_TYPE_CHAR); break;
             }
         } break;
         case 'e': {
@@ -174,7 +174,7 @@ static Ruja_Token_Kind id_v_keyword(Ruja_Lexer* lexer, size_t length) {
                     switch (peek_offset(lexer, 2)) {
                         case 'r': {
                             switch (peek_offset(lexer, 3)) {
-                                case 'u': return match(lexer, length, 4, 1, "c", RUJA_TOK_STRUCT); break;
+                                case 'u': return match(lexer, length, 4, 2, "ct", RUJA_TOK_STRUCT); break;
                                 case 'i': return match(lexer, length, 4, 2, "ng", RUJA_TOK_TYPE_STRING); break;
                             }
                         } break;
