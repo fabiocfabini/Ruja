@@ -422,6 +422,10 @@ Ruja_Vm_Status vm_run(Ruja_Vm *vm) {
 
                 Word word1 = *(vm->sp-1);
                 Word word2 = *vm->sp--;
+                if (IS_OBJECT(word1) || IS_OBJECT(word2)) {
+                    fprintf(stderr, RED"BUG: "WHITE"Invalid type for negation in ip '%zu' VM. This is probably a bug in the type checking.\n"RESET, IP_NUMBER());
+                    return RUJA_VM_ERROR;
+                }
 
                 *vm->sp = MAKE_BOOL(AS_BOOL(word1) && AS_BOOL(word2));
 
@@ -435,6 +439,10 @@ Ruja_Vm_Status vm_run(Ruja_Vm *vm) {
 
                 Word word1 = *(vm->sp-1);
                 Word word2 = *vm->sp--;
+                if (IS_OBJECT(word1) || IS_OBJECT(word2)) {
+                    fprintf(stderr, RED"BUG: "WHITE"Invalid type for negation in ip '%zu' VM. This is probably a bug in the type checking.\n"RESET, IP_NUMBER());
+                    return RUJA_VM_ERROR;
+                }
 
                 *vm->sp = MAKE_BOOL(AS_BOOL(word1) || AS_BOOL(word2));
 
