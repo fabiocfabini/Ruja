@@ -543,10 +543,7 @@ Ruja_Token* next_token(Ruja_Lexer *lexer) {
             if (peek(lexer) == '\0') err_lexer(lexer, result, "Unterminated character");
             else if (len > 1) {
                 err_lexer(lexer, result, "Character literal too long");
-                while (len + 1 > 1) {
-                    advance(lexer);
-                    len--;
-                }
+                advance(lexer);
             }
             else advance(lexer);
         } break;

@@ -56,6 +56,7 @@ static void advance(Ruja_Parser *parser, Ruja_Lexer *lexer) {
         if (parser->current->kind != RUJA_TOK_ERR)
             break;
 
+        token_free(parser->current);
         signal_lexer_error(parser);
     }
 }
@@ -834,7 +835,6 @@ static void statements(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
 bool parse(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
     // quick start the parser
     advance(parser, lexer);
-    if (parser->had_error) return false;
 
     // We know that the root of the AST will be an expression
     if (*ast == NULL) {
