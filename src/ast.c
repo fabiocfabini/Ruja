@@ -491,7 +491,7 @@ static void print_token_word(FILE* file, Ruja_Token* token) {
     switch (token->kind) {
         case RUJA_TOK_INT: fprintf(file, "%ld", strtol(token->start, NULL, 10)); break;
         case RUJA_TOK_FLOAT: fprintf(file, "%lf", strtod(token->start, NULL)); break;
-        case RUJA_TOK_CHAR: fprintf(file, "%c", *(token->start)); break;
+        case RUJA_TOK_CHAR: fprintf(file, "'%c'", *(token->start)); break;
         case RUJA_TOK_TRUE: fprintf(file, "%.*s", (int) token->length, token->start); break;
         case RUJA_TOK_FALSE: fprintf(file, "%.*s", (int) token->length, token->start); break;
         case RUJA_TOK_ID: fprintf(file, "%.*s", (int) token->length, token->start); break;

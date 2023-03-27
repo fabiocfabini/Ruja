@@ -154,6 +154,7 @@ static Ruja_Compile_Error compile_internal(Ruja_Ast ast, Ruja_Vm* vm) {
 Ruja_Compile_Error compile(Ruja_Compiler *compiler, const char *source_path, Ruja_Vm* vm) {
     Ruja_Lexer* lexer = NULL;
     Ruja_Parser* parser = NULL;
+    Ruja_Ir* ir = NULL;
 
     lexer = lexer_new(source_path);
     if (lexer == NULL) goto error;
@@ -161,8 +162,10 @@ Ruja_Compile_Error compile(Ruja_Compiler *compiler, const char *source_path, Ruj
     parser = parser_new();
     if (parser == NULL) goto error;
 
-    if (!parse(parser, lexer, &compiler->ast)) goto error;
+    ir = ir_new();
+    if (ir == NULL) goto error;
 
+    if (!parse(parser, lexer, &ir->ast, ir->symbol_table)) goto error;
 
     if (compiler->ast->type != AST_NODE_EXPRESSION) {
         fprintf(stderr, "Only expressions are supported\n");
@@ -184,5 +187,6 @@ Ruja_Compile_Error compile(Ruja_Compiler *compiler, const char *source_path, Ruj
 error:
     if (lexer != NULL) lexer_free(lexer);
     if (parser != NULL) parser_free(parser);
+    if (ir != NULL) ir_free(ir);
     return RUJA_COMPILER_ERROR;
 }

@@ -9,6 +9,8 @@
 #include "includes/vm.h"
 #include "includes/ast.h"
 #include "includes/compiler.h"
+#include "includes/symbol_table.h"
+#include "includes/ir.h"
 
 #define STACK_TEST 0
 #define NAN_BOX_TEST 0
@@ -17,6 +19,7 @@
 #define PARSER_TEST 1
 #define AST_TEST 0
 #define COMPILER_TEST 0
+#define SYMBOL_TABLE_TEST 0
 
 void shift_agrs(int* argc, char*** argv) {
     (*argc)--;
@@ -142,13 +145,13 @@ int main(int argc, char** argv) {
                 if (lexer != NULL) {
                     Ruja_Parser* parser = parser_new();
                     if (parser != NULL) {
-                        Ruja_Ast ast = ast_new_stmt(NULL, NULL);
-                        if (ast != NULL) {
-                            if (parse(parser, lexer, &ast)) {
-                                ast_dot(ast, stdout);
+                        Ruja_Ir* ir = ir_new();
+                        if (ir != NULL) {
+                            if (parse(parser, lexer, &ir->ast, ir->symbol_table)) {
+                                ast_dot(ir->ast, stdout);
                             }
 
-                            ast_free(ast);
+                            ir_free(ir);
                         }
                         parser_free(parser);
                     }
@@ -204,6 +207,82 @@ int main(void) {
 
     vm_free(vm);
     compiler_free(compiler);
+    return 0;
+}
+#endif
+
+#if SYMBOL_TABLE_TEST
+int main(void) {
+    Ruja_Symbol_Table* table = symbol_table_new(8);
+    Symbol* symbol = NULL;
+
+    symbol_table_insert(table, symbol_new_var(VAR_TYPE_NIL, "node", 4));
+    if ((symbol = symbol_table_lookup(table, "boob", 4)) != NULL) {
+        printf("Found: ");
+        symbol_print(symbol);
+    } else {
+        printf("Did not find symbol!\n");
+    }
+    symbol_table_insert(table, symbol_new_var(VAR_TYPE_BOOL, "Mike", 4));
+    if ((symbol = symbol_table_lookup(table, "boob", 4)) != NULL) {
+        printf("Found: ");
+        symbol_print(symbol);
+    } else {
+        printf("Did not find symbol!\n");
+    }
+    symbol_table_insert(table, symbol_new_var(VAR_TYPE_I32, "Variable", 8));
+    if ((symbol = symbol_table_lookup(table, "boob", 4)) != NULL) {
+        printf("Found: ");
+        symbol_print(symbol);
+    } else {
+        printf("Did not find symbol!\n");
+    }
+    symbol_table_insert(table, symbol_new_var(VAR_TYPE_F64, "Needed", 6));
+    if ((symbol = symbol_table_lookup(table, "boob", 4)) != NULL) {
+        printf("Found: ");
+        symbol_print(symbol);
+    } else {
+        printf("Did not find symbol!\n");
+    }
+    symbol_table_insert(table, symbol_new_var(VAR_TYPE_STRING, "money", 5));
+    if ((symbol = symbol_table_lookup(table, "boob", 4)) != NULL) {
+        printf("Found: ");
+        symbol_print(symbol);
+    } else {
+        printf("Did not find symbol!\n");
+    }
+    symbol_table_insert(table, symbol_new_var(VAR_TYPE_CHAR, "boob", 4));
+    if ((symbol = symbol_table_lookup(table, "boob", 4)) != NULL) {
+        printf("Found: ");
+        symbol_print(symbol);
+    } else {
+        printf("Did not find symbol!\n");
+    }
+    symbol_table_insert(table, symbol_new_var(VAR_TYPE_CHAR, "my_char", 7));
+    if ((symbol = symbol_table_lookup(table, "boob", 4)) != NULL) {
+        printf("Found: ");
+        symbol_print(symbol);
+    } else {
+        printf("Did not find symbol!\n");
+    }
+    symbol_table_insert(table, symbol_new_var(VAR_TYPE_CHAR, "n", 1));
+    if ((symbol = symbol_table_lookup(table, "boob", 4)) != NULL) {
+        printf("Found: ");
+        symbol_print(symbol);
+    } else {
+        printf("Did not find symbol!\n");
+    }
+    symbol_table_insert(table, symbol_new_var(VAR_TYPE_CHAR, "p", 1));
+    if ((symbol = symbol_table_lookup(table, "p", 1)) != NULL) {
+        printf("Found: ");
+        symbol_print(symbol);
+    } else {
+        printf("Did not find symbol!\n");
+    }
+
+
+    symbol_table_print(table);
+    symbol_table_free(table);
     return 0;
 }
 #endif

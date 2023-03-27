@@ -102,7 +102,7 @@ typedef enum {
     PREC_PRIMARY
 } Precedence;
 
-typedef void (*Parser_Function)(Ruja_Parser *, Ruja_Lexer *, Ruja_Ast *);
+typedef void (*Parser_Function)(Ruja_Parser *, Ruja_Lexer *, Ruja_Ast *, Ruja_Symbol_Table *);
 typedef struct {
     Parser_Function prefix;
     Parser_Function infix;
@@ -110,30 +110,34 @@ typedef struct {
 } Parse_Rule;
 
 //TODO: Organize these functions better
-static void statements(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
-static void statement(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
-static void inferred_declaration(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
-static void declaration(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
-static void assignment(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
-static void else_branch(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
-static void elif_branch(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
-static void if_branch(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
-static void ranged_iter(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
-static void for_loop(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
-static void while_loop(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
-static void expression(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
-static void ternary(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
-static void binary(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
-static void unary(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
-static void integer(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
-static void floating(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
-static void character(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
-static void boolean(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
-static void nil(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
-static void string(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
-static void identifier(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
-static void grouping(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast);
-static void parse_precedence(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast, Precedence precedence);
+static void statements(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast, Ruja_Symbol_Table* sb);
+static void statement(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast, Ruja_Symbol_Table* sb);
+static void struct_member(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast, Ruja_Symbol_Table* sb);
+static void struct_members(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast, Ruja_Symbol_Table* sb);
+static void struct_definition(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast, Ruja_Symbol_Table* sb);
+static void inferred_declaration(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast, Ruja_Symbol_Table* sb);
+static void typed_declaration(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast, Ruja_Symbol_Table* sb);
+static void declaration(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast, Ruja_Symbol_Table* sb);
+static void assignment(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast, Ruja_Symbol_Table* sb);
+static void else_branch(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast, Ruja_Symbol_Table* sb);
+static void elif_branch(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast, Ruja_Symbol_Table* sb);
+static void if_branch(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast, Ruja_Symbol_Table* sb);
+static void ranged_iter(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast, Ruja_Symbol_Table* sb);
+static void for_loop(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast, Ruja_Symbol_Table* sb);
+static void while_loop(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast, Ruja_Symbol_Table* sb);
+static void expression(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast, Ruja_Symbol_Table* sb);
+static void ternary(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast, Ruja_Symbol_Table* sb);
+static void binary(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast, Ruja_Symbol_Table* sb);
+static void unary(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast, Ruja_Symbol_Table* sb);
+static void integer(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast, Ruja_Symbol_Table* sb);
+static void floating(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast, Ruja_Symbol_Table* sb);
+static void character(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast, Ruja_Symbol_Table* sb);
+static void boolean(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast, Ruja_Symbol_Table* sb);
+static void nil(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast, Ruja_Symbol_Table* sb);
+static void string(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast, Ruja_Symbol_Table* sb);
+static void identifier(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast, Ruja_Symbol_Table* sb);
+static void grouping(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast, Ruja_Symbol_Table* sb);
+static void parse_precedence(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast, Ruja_Symbol_Table* sb, Precedence precedence);
 
 static Parse_Rule rules[] = {
     [RUJA_TOK_LBRACE]     = {NULL, NULL, PREC_NONE},
@@ -211,9 +215,9 @@ static Parse_Rule *get_rule(Ruja_Token_Kind kind) {
  * @param parser The Parser in use
  * @param lexer The Lexer is use
  */
-static void nil(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
-    UNUSED(parser);
+static void nil(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast, Ruja_Symbol_Table* sb) {
     UNUSED(lexer);
+    UNUSED(sb);
 
     (*ast) = ast_new_literal(parser->previous);
 }
@@ -224,8 +228,9 @@ static void nil(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
  * @param parser The Parser in use
  * @param lexer The Lexer is use
  */
-static void boolean(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
+static void boolean(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast, Ruja_Symbol_Table* sb) {
     UNUSED(lexer);
+    UNUSED(sb);
     
     (*ast) = ast_new_literal(parser->previous);
 }
@@ -236,8 +241,9 @@ static void boolean(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
  * @param parser The Parser in use
  * @param lexer The Lexer is use
  */
-static void integer(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
+static void integer(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast, Ruja_Symbol_Table* sb) {
     UNUSED(lexer);
+    UNUSED(sb);
     
     (*ast) = ast_new_literal(parser->previous);
 }
@@ -248,8 +254,9 @@ static void integer(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
  * @param parser The Parser in use
  * @param lexer The Lexer is use
  */
-static void floating(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
+static void floating(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast, Ruja_Symbol_Table* sb) {
     UNUSED(lexer);
+    UNUSED(sb);
     
     (*ast) = ast_new_literal(parser->previous);
 }
@@ -260,8 +267,9 @@ static void floating(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
  * @param parser The Parser in use
  * @param lexer The Lexer is use
  */
-static void character(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
+static void character(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast, Ruja_Symbol_Table* sb) {
     UNUSED(lexer);
+    UNUSED(sb);
     
     (*ast) = ast_new_literal(parser->previous);
 }
@@ -272,9 +280,10 @@ static void character(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
  * @param parser The Parser in use
  * @param lexer The Lexer is use
  */
-static void string(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
+static void string(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast, Ruja_Symbol_Table* sb) {
     UNUSED(lexer);
-    
+    UNUSED(sb);
+
     (*ast) = ast_new_literal(parser->previous);
 }
 
@@ -284,11 +293,10 @@ static void string(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
  * @param parser The Parser in use
  * @param lexer The Lexer is use
  */
-static void identifier(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
+static void identifier(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast, Ruja_Symbol_Table* sb) {
     UNUSED(lexer);
-    UNUSED(parser);
-    UNUSED(ast);
-    
+    UNUSED(sb);
+
     (*ast) = ast_new_identifier(parser->previous);
 }
 
@@ -298,8 +306,8 @@ static void identifier(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
  * @param parser The parser in use
  * @param lexer The lexer in use
  */
-static void grouping(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
-    expression(parser, lexer, ast);
+static void grouping(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast, Ruja_Symbol_Table* sb) {
+    expression(parser, lexer, ast, sb);
     expect(parser, lexer, RUJA_TOK_RPAREN, "Unclosed left parenthesis. Expected ')'");
 }
 
@@ -309,7 +317,7 @@ static void grouping(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
  * @param parser The parser in use
  * @param lexer The lexer in use
  */
-static void unary(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
+static void unary(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast, Ruja_Symbol_Table* sb) {
     // assert((parser->previous.kind == RUJA_TOK_NOT || parser->previous.kind == RUJA_TOK_SUB) &&
     //         "This function assumes that a unary token has been already consumed.");
 
@@ -318,7 +326,7 @@ static void unary(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
     Ruja_Ast unary = ast_new_unary_op(unary_op, NULL);
 
     // Parse any following expressions that have equal or higher precedence
-    parse_precedence(parser, lexer, &unary->as.unary_op.expression, PREC_UNARY);
+    parse_precedence(parser, lexer, &unary->as.unary_op.expression, sb, PREC_UNARY);
 
     *ast = unary;
 }
@@ -329,7 +337,7 @@ static void unary(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
  * @param parser The parser in use
  * @param lexer The lexer in use
  */
-static void binary(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
+static void binary(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast, Ruja_Symbol_Table* sb) {
     // assert((parser->previous.kind == RUJA_TOK_SUB || parser->previous.kind == RUJA_TOK_ADD ||
     //         parser->previous.kind == RUJA_TOK_DIV || parser->previous.kind == RUJA_TOK_MUL ||
     //         parser->previous.kind == RUJA_TOK_AND || parser->previous.kind == RUJA_TOK_OR  ||
@@ -345,7 +353,7 @@ static void binary(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
     // Parse any following expressions that have higher precedence
     // Since not all binary operations have the same precedence we must search for it
     Precedence binary_op_precedence = get_rule(parser->previous->kind)->precedence;
-    parse_precedence(parser, lexer, &binary->as.binary_op.right_expression, binary_op_precedence + 1);
+    parse_precedence(parser, lexer, &binary->as.binary_op.right_expression, sb, binary_op_precedence + 1);
 
     (*ast) = binary;
 }
@@ -356,7 +364,7 @@ static void binary(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast) {
  * @param parser The parser in use
  * @param lexer The lexer in use
  */
-static void ternary(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
+static void ternary(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast, Ruja_Symbol_Table* sb) {
     // At this point the ast is the expression branch of the AST_NODE_EXPRESSION node
     // this needs to be changed to the condition branch of the AST_NODE_TERNARY node
     // assert( parser->previous.kind == RUJA_TOK_QUESTION &&
@@ -364,7 +372,7 @@ static void ternary(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
 
     Ruja_Ast ternary = ast_new_ternary_op(parser->previous, NULL, *ast, NULL, NULL);
 
-    expression(parser, lexer, &ternary->as.ternary_op.true_expression);
+    expression(parser, lexer, &ternary->as.ternary_op.true_expression, sb);
 
     // assert( parser->current.kind == RUJA_TOK_COLON &&
     //         "This function assumes that a ternary token has been already consumed.");
@@ -379,7 +387,7 @@ static void ternary(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
         parser->previous->in_ast = true;
         ternary->as.ternary_op.tok_ternary.tok_colon = parser->previous;
 
-        expression(parser, lexer, &ternary->as.ternary_op.false_expression);
+        expression(parser, lexer, &ternary->as.ternary_op.false_expression, sb);
     }
 
     (*ast) = ternary;
@@ -392,9 +400,9 @@ static void ternary(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
  * @param parser The parser in use
  * @param lexer The lexer in use
  */
-static void expression(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
+static void expression(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast, Ruja_Symbol_Table* sb) {
     // At this point ast is the expression branch of the AST_NODE_EXPRESSION node
-    parse_precedence(parser, lexer, ast, PREC_ASSIGNMENT);
+    parse_precedence(parser, lexer, ast, sb, PREC_ASSIGNMENT);
 }
 
 /**
@@ -406,7 +414,7 @@ static void expression(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
  * @param lexer The lexer in use
  * @param precedence The level of precedence given by the function caller
  */
-static void parse_precedence(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast, Precedence precedence) {
+static void parse_precedence(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast, Ruja_Symbol_Table* sb, Precedence precedence) {
     // At this point in the execution the current token can only be a token that has prefix rules (unary, primary or '(')
     // Get the current token's prefix rule
     advance(parser, lexer);
@@ -419,7 +427,7 @@ static void parse_precedence(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* a
 
     // Consume the current token since prefix rules expect the token to be in previous
     // Execute the obtained prefix rule
-    prefix_rule(parser, lexer, ast);
+    prefix_rule(parser, lexer, ast, sb);
 
     /*
     At this point there are 3 possible outcomes that have the same resolution those are.
@@ -458,11 +466,11 @@ static void parse_precedence(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* a
             parser_error(parser, lexer, parser->previous, "Expected binary operator");
             return;
         }
-        infix_rule(parser, lexer, ast);
+        infix_rule(parser, lexer, ast, sb);
     }
 }
 
-static void typed_declaration(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
+static void typed_declaration(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast, Ruja_Symbol_Table* sb) {
     // previous is the identifier and current is the colon
     Ruja_Token* tok_id = parser->previous;
     tok_id->in_ast = true; // signal that this token should be in the AST. If something goes wrong it is this function's responsibility to free it
@@ -493,7 +501,7 @@ static void typed_declaration(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *
                     // This is a typed declaration with an assignment
                     *ast = ast_new_typed_decl_assign(parser->previous, parser->current, ast_new_identifier(tok_id), ast_new_expression(NULL));
                     advance(parser, lexer);
-                    expression(parser, lexer, &(*ast)->as.typed_decl_assign.expression->as.expr.expression);
+                    expression(parser, lexer, &(*ast)->as.typed_decl_assign.expression->as.expr.expression, sb);
                 } break;
                 default: {
                     parser_error(parser, lexer, parser->current, "Expected '=' or ';' after type");
@@ -511,7 +519,7 @@ static void typed_declaration(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *
 #pragma GCC diagnostic pop
 }
 
-static void inferred_declaration(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
+static void inferred_declaration(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast, Ruja_Symbol_Table* sb) {
     // previous is the identifier and current is the equal sign
     Ruja_Token* tok_id = parser->previous;
     tok_id->in_ast = true; // signal that this token should be in the AST. If something goes wrong it is this function's responsibility to free it
@@ -519,17 +527,17 @@ static void inferred_declaration(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_As
 
     // the next token must be an expression
     *ast = ast_new_inferred_decl_assign(parser->previous, ast_new_identifier(tok_id), ast_new_expression(NULL));
-    expression(parser, lexer, &(*ast)->as.inferred_decl_assign.expression->as.expr.expression);
+    expression(parser, lexer, &(*ast)->as.inferred_decl_assign.expression->as.expr.expression, sb);
 }
 
-static void declaration(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
+static void declaration(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast, Ruja_Symbol_Table* sb) {
     expect(parser, lexer, RUJA_TOK_ID, "Expected identifier after 'let' keyword");
     if (!parser->had_error) {
     #pragma GCC diagnostic push
     #pragma GCC diagnostic ignored "-Wswitch-enum"
         switch (parser->current->kind) {
             case RUJA_TOK_COLON: {
-                typed_declaration(parser, lexer, ast);
+                typed_declaration(parser, lexer, ast, sb);
             } break;
             case RUJA_TOK_ASSIGN:
             case RUJA_TOK_ADD_EQ:
@@ -537,7 +545,7 @@ static void declaration(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
             case RUJA_TOK_MUL_EQ:
             case RUJA_TOK_DIV_EQ:{
                 // This is an inferred declaration with an assignment
-                inferred_declaration(parser, lexer, ast);
+                inferred_declaration(parser, lexer, ast, sb);
             } break;
             default: {
                 parser_error(parser, lexer, parser->current, "Must specify type of variable. Expected ':' followed by a type");
@@ -547,7 +555,7 @@ static void declaration(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
     }
 }
 
-static void assignment(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
+static void assignment(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast, Ruja_Symbol_Table* sb) {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wswitch-enum"
     switch (parser->current->kind) {
@@ -558,7 +566,7 @@ static void assignment(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
         case RUJA_TOK_DIV_EQ: {
             *ast = ast_new_assign(parser->current, ast_new_identifier(parser->previous), ast_new_expression(NULL));
             advance(parser, lexer);
-            expression(parser, lexer, &(*ast)->as.assign.expression->as.expr.expression);
+            expression(parser, lexer, &(*ast)->as.assign.expression->as.expr.expression, sb);
         } break;
         default: {
             parser_error(parser, lexer, parser->current, "Expected assignment operator");
@@ -567,7 +575,7 @@ static void assignment(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
 #pragma GCC diagnostic pop
 }
 
-static void else_branch(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
+static void else_branch(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast, Ruja_Symbol_Table* sb) {
     Ruja_Ast else_ast = ast_new_else_stmt(parser->previous, ast_new_stmt(NULL, NULL));
 
     expect(parser, lexer, RUJA_TOK_LBRACE, "Expected '{' after else keyword");
@@ -577,17 +585,17 @@ static void else_branch(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
     if (!parser->had_error) {
         // Parse the body of the else statement
 
-        statements(parser, lexer, &else_ast->as.else_branch.body);
+        statements(parser, lexer, &else_ast->as.else_branch.body, sb);
         expect(parser, lexer, RUJA_TOK_RBRACE, "Expected '}' after else body");
     }
 
     *ast = else_ast;
 }
 
-static void elif_branch(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
+static void elif_branch(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast, Ruja_Symbol_Table* sb) {
     Ruja_Ast elif_ast = ast_new_elif_stmt(parser->previous, ast_new_expression(NULL), ast_new_stmt(NULL, NULL), NULL);
 
-    expression(parser, lexer, &elif_ast->as.elif_branch.condition->as.expr.expression);
+    expression(parser, lexer, &elif_ast->as.elif_branch.condition->as.expr.expression, sb);
     expect(parser, lexer, RUJA_TOK_LBRACE, "Expected '{' after elif condition");
 
     // If there was an error the rest should be skipped.
@@ -595,7 +603,7 @@ static void elif_branch(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
     if (!parser->had_error) {
         // Parse the body of the elif statement
 
-        statements(parser, lexer, &elif_ast->as.elif_branch.body);
+        statements(parser, lexer, &elif_ast->as.elif_branch.body, sb);
         expect(parser, lexer, RUJA_TOK_RBRACE, "Expected '}' after elif body");
 
         // Same thought as before
@@ -605,11 +613,11 @@ static void elif_branch(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
             switch (parser->current->kind) {
                 case RUJA_TOK_ELSE: {
                     advance(parser, lexer);
-                    else_branch(parser, lexer, &elif_ast->as.if_branch.next_branch);
+                    else_branch(parser, lexer, &elif_ast->as.if_branch.next_branch, sb);
                 } break;
                 case RUJA_TOK_ELIF: {
                     advance(parser, lexer);
-                    elif_branch(parser, lexer, &elif_ast->as.if_branch.next_branch);
+                    elif_branch(parser, lexer, &elif_ast->as.if_branch.next_branch, sb);
                 } break;
                 default: {
                     // Do nothing. This is the end of the elif statement
@@ -622,10 +630,10 @@ static void elif_branch(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
     *ast = elif_ast;
 }
 
-static void if_branch(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
+static void if_branch(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast, Ruja_Symbol_Table* sb) {
     Ruja_Ast if_ast = ast_new_if_stmt(parser->previous, ast_new_expression(NULL), ast_new_stmt(NULL, NULL), NULL);
 
-    expression(parser, lexer, &if_ast->as.if_branch.condition->as.expr.expression);
+    expression(parser, lexer, &if_ast->as.if_branch.condition->as.expr.expression, sb);
     expect(parser, lexer, RUJA_TOK_LBRACE, "Expected '{' after if condition");
 
     // If there was an error the rest should be skipped.
@@ -633,7 +641,7 @@ static void if_branch(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
     if (!parser->had_error) {
         // Parse the body of the if statement
 
-        statements(parser, lexer, &if_ast->as.if_branch.body);
+        statements(parser, lexer, &if_ast->as.if_branch.body, sb);
         expect(parser, lexer, RUJA_TOK_RBRACE, "Expected '}' after if body");
 
         // Same thought as before
@@ -643,11 +651,11 @@ static void if_branch(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
             switch (parser->current->kind) {
                 case RUJA_TOK_ELSE: {
                     advance(parser, lexer);
-                    else_branch(parser, lexer, &if_ast->as.if_branch.next_branch);
+                    else_branch(parser, lexer, &if_ast->as.if_branch.next_branch, sb);
                 } break;
                 case RUJA_TOK_ELIF: {
                     advance(parser, lexer);
-                    elif_branch(parser, lexer, &if_ast->as.if_branch.next_branch);
+                    elif_branch(parser, lexer, &if_ast->as.if_branch.next_branch, sb);
                 } break;
                 default: {
                     // Do nothing. This is the end of the if statement
@@ -660,27 +668,27 @@ static void if_branch(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
     *ast = if_ast;
 }
 
-static void ranged_iter(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
+static void ranged_iter(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast, Ruja_Symbol_Table* sb) {
     Ruja_Ast iter_ast = ast_new_ranged_iter(ast_new_expression(NULL), ast_new_expression(NULL), NULL); // Last expr is NULL because it is optional
 
-    expression(parser, lexer, &iter_ast->as.ranged_iter.start_expr->as.expr.expression);
+    expression(parser, lexer, &iter_ast->as.ranged_iter.start_expr->as.expr.expression, sb);
     expect(parser, lexer, RUJA_TOK_COLON, "Expected ':' after start expression of ranged iter");
 
     if (!parser->had_error) {
-        expression(parser, lexer, &iter_ast->as.ranged_iter.end_expr->as.expr.expression);
+        expression(parser, lexer, &iter_ast->as.ranged_iter.end_expr->as.expr.expression, sb);
 
         if (parser->current->kind == RUJA_TOK_COLON) {
             // If there is a third expression, parse it
             advance(parser, lexer);
             iter_ast->as.ranged_iter.step_expr = ast_new_expression(NULL);
-            expression(parser, lexer, &iter_ast->as.ranged_iter.step_expr->as.expr.expression);
+            expression(parser, lexer, &iter_ast->as.ranged_iter.step_expr->as.expr.expression, sb);
         }
     }
 
     *ast = iter_ast;
 }
 
-static void for_loop(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
+static void for_loop(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast, Ruja_Symbol_Table* sb) {
     Ruja_Ast for_ast = ast_new_for_loop(parser->previous, NULL, NULL, ast_new_stmt(NULL, NULL));
 
     //NOTE: Only accept single identifiers for now
@@ -694,11 +702,11 @@ static void for_loop(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
         if (!parser->had_error) {
             for_ast->as.for_loop.tok_in = parser->previous; parser->previous->in_ast = true;
             
-            ranged_iter(parser, lexer, &for_ast->as.for_loop.iter);
+            ranged_iter(parser, lexer, &for_ast->as.for_loop.iter, sb);
             expect(parser, lexer, RUJA_TOK_LBRACE, "Expected '{' after for iter");
 
             if (!parser->had_error) {
-                statements(parser, lexer, &for_ast->as.for_loop.body);
+                statements(parser, lexer, &for_ast->as.for_loop.body, sb);
                 expect(parser, lexer, RUJA_TOK_RBRACE, "Expected '}' after for body");
             }
         }
@@ -707,21 +715,23 @@ static void for_loop(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
     *ast = for_ast;
 }
 
-static void while_loop(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
+static void while_loop(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast, Ruja_Symbol_Table* sb) {
     Ruja_Ast while_ast = ast_new_while_loop(parser->previous, ast_new_expression(NULL), ast_new_stmt(NULL, NULL));
 
-    expression(parser, lexer, &while_ast->as.while_loop.condition->as.expr.expression);
+    expression(parser, lexer, &while_ast->as.while_loop.condition->as.expr.expression, sb);
     expect(parser, lexer, RUJA_TOK_LBRACE, "Expected '{' after while condition");
 
     if (!parser->had_error) {
-        statements(parser, lexer, &while_ast->as.while_loop.body);
+        statements(parser, lexer, &while_ast->as.while_loop.body, sb);
         expect(parser, lexer, RUJA_TOK_RBRACE, "Expected '}' after while body");
     }
 
     *ast = while_ast;
 }
 
-static void struct_member(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
+static void struct_member(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast, Ruja_Symbol_Table* sb) {
+    UNUSED(sb);
+
     (*ast)->as.struct_member.identifier = ast_new_identifier(parser->previous);
 
     expect(parser, lexer, RUJA_TOK_COLON, "Expected ':' after struct member identifier");
@@ -746,11 +756,11 @@ static void struct_member(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast)
     }
 }
 
-static void struct_members(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
+static void struct_members(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast, Ruja_Symbol_Table* sb) {
     Ruja_Ast *current = ast;
     while (parser->current->kind == RUJA_TOK_ID) {
         advance(parser, lexer);
-        struct_member(parser, lexer, current);
+        struct_member(parser, lexer, current, sb);
         (*current)->as.struct_member.next_member = ast_new_struct_members(NULL, NULL);
         current = &(*current)->as.struct_member.next_member;
     }
@@ -762,7 +772,7 @@ static void struct_members(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast
     }
 }
 
-static void struct_definition(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
+static void struct_definition(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast, Ruja_Symbol_Table* sb) {
     Ruja_Ast struct_ast = ast_new_struct_def(parser->previous, NULL, NULL);
 
     expect(parser, lexer, RUJA_TOK_ID, "Expected identifier after struct keyword");
@@ -772,7 +782,7 @@ static void struct_definition(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *
         expect(parser, lexer, RUJA_TOK_LBRACE, "Expected '{' after struct identifier");
         if (!parser->had_error) {
             struct_ast->as.struct_def.members = ast_new_struct_members(NULL, NULL);
-            struct_members(parser, lexer, &struct_ast->as.struct_def.members);
+            struct_members(parser, lexer, &struct_ast->as.struct_def.members, sb);
             if (struct_ast->as.struct_def.members == NULL) {
                 parser_error(parser, lexer, parser->current, "Empty struct definition. Expected at least one member");
             }
@@ -783,31 +793,31 @@ static void struct_definition(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *
     *ast = struct_ast;
 }
 
-static void statement(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
+static void statement(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast, Ruja_Symbol_Table* sb) {
     advance(parser, lexer);
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wswitch-enum"
     switch (parser->previous->kind) {
         case RUJA_TOK_LET: {
-            declaration(parser, lexer, ast);
+            declaration(parser, lexer, ast, sb);
             expect(parser, lexer, RUJA_TOK_SEMICOLON, "Expected ';' after declaration");
         } break;
         case RUJA_TOK_ID: {
-            assignment(parser, lexer, ast);
+            assignment(parser, lexer, ast, sb);
             expect(parser, lexer, RUJA_TOK_SEMICOLON, "Expected ';' after assignment");
         } break;
         case RUJA_TOK_IF: {
-            if_branch(parser, lexer, ast);
+            if_branch(parser, lexer, ast, sb);
         } break;
         case RUJA_TOK_FOR: {
-            for_loop(parser, lexer, ast);
+            for_loop(parser, lexer, ast, sb);
         } break;
         case RUJA_TOK_WHILE: {
-            while_loop(parser, lexer, ast);
+            while_loop(parser, lexer, ast, sb);
         } break;
         case RUJA_TOK_STRUCT: {
-            struct_definition(parser, lexer, ast);
+            struct_definition(parser, lexer, ast, sb);
             expect(parser, lexer, RUJA_TOK_SEMICOLON, "Expected ';' after struct declaration");
         } break;
         default: {
@@ -817,10 +827,10 @@ static void statement(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
 #pragma GCC diagnostic pop
 }
 
-static void statements(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
+static void statements(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast, Ruja_Symbol_Table* sb) {
     Ruja_Ast *current = ast;
     while (parser->current->kind != RUJA_TOK_EOF && parser->current->kind != RUJA_TOK_RBRACE) {
-        statement(parser, lexer, &(*current)->as.stmts.statement);
+        statement(parser, lexer, &(*current)->as.stmts.statement, sb);
         (*current)->as.stmts.next = ast_new_stmt(NULL, NULL);
         current = &(*current)->as.stmts.next;
     }
@@ -832,7 +842,7 @@ static void statements(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
     }
 }
 
-bool parse(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
+bool parse(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast, Ruja_Symbol_Table* sb) {
     // quick start the parser
     advance(parser, lexer);
 
@@ -841,7 +851,7 @@ bool parse(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast *ast) {
         fprintf(stderr, "Null AST passed to parser\n");
         return false;
     }
-    statements(parser, lexer, ast);
+    statements(parser, lexer, ast, sb);
     expect(parser, lexer, RUJA_TOK_EOF, "Expected end of file");
     maybe_free_token(parser->previous);
     maybe_free_token(parser->current);
