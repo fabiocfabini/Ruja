@@ -14,12 +14,12 @@ typedef struct {
     size_t key_length;
     union {
         struct {
-            Var_Type type;
+            Type type;
         } var;
     } as;
 } Symbol;
 
-Symbol *symbol_new_var(Var_Type type, char *name, size_t name_length);
+Symbol *symbol_new_var(Type type, char *name, size_t name_length);
 void symbol_free(Symbol *symbol);
 void symbol_print(Symbol *symbol);
 

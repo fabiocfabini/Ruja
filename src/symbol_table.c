@@ -5,7 +5,7 @@
 #include "../includes/symbol_table.h"
 
 
-Symbol *symbol_new_var(Var_Type type, char *name, size_t name_length) {
+Symbol *symbol_new_var(Type type, char *name, size_t name_length) {
     Symbol *symbol = malloc(sizeof(Symbol));
     if (symbol == NULL) {
         fprintf(stderr, "Error: Could not allocate memory for symbol var.\n");

@@ -10,6 +10,6 @@ typedef enum {
     VAR_TYPE_I32,
     VAR_TYPE_F64,
     VAR_TYPE_STRING,
-} Var_Type; //NOTE: better name?
+} Type; //NOTE: better name?
 
 #endif // RUJA_TYPES_H

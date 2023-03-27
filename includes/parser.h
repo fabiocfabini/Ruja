@@ -10,11 +10,16 @@ typedef enum {
     RUJA_PARSER_OK,
 } Ruja_Parse_Error;
 
+
+typedef struct _tstack Type_Stack;
 typedef struct {
     Ruja_Token* previous;
     Ruja_Token* current;
+
     bool had_error;
     bool panic_mode;
+
+    Type_Stack* type_stack;
 } Ruja_Parser;
 
 Ruja_Parser* parser_new();

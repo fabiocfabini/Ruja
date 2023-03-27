@@ -5,6 +5,53 @@
 #include <errno.h>
 
 #include "../includes/parser.h"
+#include "../includes/memory.h"
+
+struct _tstack {
+    size_t count;
+    size_t capacity;
+    Type *items;
+};
+
+Type_Stack* new_type_stack() {
+    Type_Stack* stack = malloc(sizeof(Type_Stack));
+    if (stack == NULL) {
+        fprintf(stderr, "Error: Could not allocate memory for type stack.\n");
+        return NULL;
+    }
+
+    stack->count = 0;
+    stack->capacity = 8;
+    stack->items = malloc(sizeof(Type) * stack->capacity);
+    if (stack->items == NULL) {
+        fprintf(stderr, "Error: Could not allocate memory for type stack items.\n");
+        return NULL;
+    }
+
+    return stack;
+}
+
+void type_stack_free(Type_Stack* stack) {
+    if (stack == NULL) {
+        return;
+    }
+
+    free(stack->items);
+    free(stack);
+}
+
+static void push_type(Type_Stack *stack, Type type) {
+    if (stack->count + 1 > stack->capacity) {
+        REALLOC_DA(Type_Stack, stack);
+    }
+
+    stack->items[stack->count++] = type;
+}
+
+static Type pop_type(Type_Stack *stack) {
+    assert(stack->count > 0 && "Cannot pop from empty stack.");
+    return stack->items[--stack->count];
+}
 
 /**
  * @brief Signals a lexer error to the parser.
@@ -219,6 +266,7 @@ static void nil(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast, Ruja_Symb
     UNUSED(lexer);
     UNUSED(sb);
 
+    push_type(parser->type_stack, VAR_TYPE_NIL);
     (*ast) = ast_new_literal(parser->previous);
 }
 
@@ -232,6 +280,7 @@ static void boolean(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast, Ruja_
     UNUSED(lexer);
     UNUSED(sb);
     
+    push_type(parser->type_stack, VAR_TYPE_BOOL);
     (*ast) = ast_new_literal(parser->previous);
 }
 
@@ -244,7 +293,8 @@ static void boolean(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast, Ruja_
 static void integer(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast, Ruja_Symbol_Table* sb) {
     UNUSED(lexer);
     UNUSED(sb);
-    
+
+    push_type(parser->type_stack, VAR_TYPE_I32);
     (*ast) = ast_new_literal(parser->previous);
 }
 
@@ -257,7 +307,8 @@ static void integer(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast, Ruja_
 static void floating(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast, Ruja_Symbol_Table* sb) {
     UNUSED(lexer);
     UNUSED(sb);
-    
+
+    push_type(parser->type_stack, VAR_TYPE_F64);
     (*ast) = ast_new_literal(parser->previous);
 }
 
@@ -270,7 +321,8 @@ static void floating(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast, Ruja
 static void character(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast, Ruja_Symbol_Table* sb) {
     UNUSED(lexer);
     UNUSED(sb);
-    
+
+    push_type(parser->type_stack, VAR_TYPE_CHAR);
     (*ast) = ast_new_literal(parser->previous);
 }
 
@@ -284,6 +336,7 @@ static void string(Ruja_Parser *parser, Ruja_Lexer *lexer, Ruja_Ast* ast, Ruja_S
     UNUSED(lexer);
     UNUSED(sb);
 
+    push_type(parser->type_stack, VAR_TYPE_STRING);
     (*ast) = ast_new_literal(parser->previous);
 }
 
@@ -870,10 +923,12 @@ Ruja_Parser *parser_new() {
     parser->current = NULL;
     parser->had_error = false;
     parser->panic_mode = false;
+    parser->type_stack = new_type_stack();
 
     return parser;
 }
 
 void parser_free(Ruja_Parser *parser) {
+    type_stack_free(parser->type_stack);
     free(parser);
 }
