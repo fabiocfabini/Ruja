@@ -382,7 +382,7 @@ static char* read_file(const char* filepath){
  * @param token The token that caused the error.
  * @param msg The error message.
  */
-static void err_lexer(Ruja_Lexer *lexer, Ruja_Token* token, const char* msg) {
+static void lex_error(Ruja_Lexer *lexer, Ruja_Token* token, const char* msg) {
     fprintf(stderr, "%s:%"PRIu64": "RED"lex error"RESET" %s '%.*s'.\n", lexer->source, token->line, msg, (int) token->length, token->start);
     token->kind = RUJA_TOK_ERR;
 }
@@ -526,7 +526,7 @@ Ruja_Token* next_token(Ruja_Lexer *lexer) {
             advance(lexer);
             switch (peek(lexer)) {
                 case '=' : { advance(lexer); result->kind = RUJA_TOK_NE; result->length = 2; } break;
-                default  : { err_lexer(lexer, result, "Unrecognized token"); } break;
+                default  : { lex_error(lexer, result, "Unrecognized token"); } break;
             }
         } break;
         case '\'': {
@@ -540,9 +540,9 @@ Ruja_Token* next_token(Ruja_Lexer *lexer) {
                 len++;
             }
             result->length = lexer->current - result->start;
-            if (peek(lexer) == '\0') err_lexer(lexer, result, "Unterminated character");
+            if (peek(lexer) == '\0') lex_error(lexer, result, "Unterminated character");
             else if (len > 1) {
-                err_lexer(lexer, result, "Character literal too long");
+                lex_error(lexer, result, "Character literal too long");
                 advance(lexer);
             }
             else advance(lexer);
@@ -556,11 +556,11 @@ Ruja_Token* next_token(Ruja_Lexer *lexer) {
                 advance(lexer);
             }
             result->length = lexer->current - result->start;
-            if (peek(lexer) == '\0') err_lexer(lexer, result, "Unterminated string");
+            if (peek(lexer) == '\0') lex_error(lexer, result, "Unterminated string");
             else advance(lexer);
         } break;
         case '\0': { result->kind = RUJA_TOK_EOF; result->length = 0; } break;
-        default: { err_lexer(lexer, result, "Unrecognized token"); advance(lexer);} break;
+        default: { lex_error(lexer, result, "Unrecognized token"); advance(lexer);} break;
     }
 
 #if DEBUG_TOKENS
