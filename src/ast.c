@@ -598,6 +598,8 @@ static void ast_dot_internal(Ruja_Ast ast, FILE* file, size_t* id) {
             break;
         case AST_NODE_STMT_ASSIGN:
             dot_node(file, root_id, "Assignment", STATEMENT_COLOR, "filled");
+            dot_arrow(file, root_id, increment(id), "assign_type");
+            dot_node(file, *id, assign_to_string(ast->as.assign.tok_assign->kind), ARITHMETIC_COLOR, "filled");
             dot_arrow(file, root_id, increment(id), "identifier");
             ast_dot_internal(ast->as.assign.identifier, file, id);
             dot_arrow(file, root_id, increment(id), "expression");
